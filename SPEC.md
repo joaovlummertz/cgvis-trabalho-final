@@ -78,6 +78,8 @@ Movimentação do jogador, bondinho e animação do crowbar.
 Das features apresentadas no vídeo, não iremos implementar:
 - Partículas e explosões: Fogem do escopo do trabalho e não influenciam tanto na qualidade do resultado final.
 
+> Comentário Professor: como pensam em fazer a animação do vidro quebrando?
+
 Se julgarmos viável dentro das nossas habilidades e do tempo para fazer o trabalho, implementaremos algumas outras funcionalidades vistas nos primeiros 16 minutos do vídeo, como:
 - NPC's
 - Efeitos sonoros
