@@ -1,0 +1,31 @@
+BSP — the map file. Contains geometry, some textures, and entity data.
+MDL — model file for props (weapons, barrels, NPCs, etc).
+WAD — texture archive. Most map textures live here.
+SMD — intermediate format Crowbar exports MDL into. Blender can read it.
+OBJ + MTL — what you want everything to end up as. OBJ is geometry, MTL points to textures.
+PNG — what you want all textures to end up as.
+
+Tools
+J.A.C.K. — opens and edits BSP maps. Use it to cut the map down to a small section and export OBJ.
+HLMV — previews MDL models before you bother extracting them.
+Crowbar — decompiles MDL → SMD.
+Blender + Source Tools add-on — imports SMD, exports OBJ.
+Wally — opens WAD files and exports textures as BMP.
+
+---------
+
+~/.steam/steam/steamapps/common/Half-Life/valve/
+        │
+        ├── MAP
+        │   └── J.A.C.K. → open BSP, cut down map, export OBJ + fix MTL paths
+        │
+        ├── PROPS
+        │   └── Crowbar → MDL to SMD
+        │       └── Blender → import SMD, export OBJ
+        │
+        └── TEXTURES
+            └── Wally → open WAD, export BMP → convert to PNG
+                └── fix paths in all MTL files to point to your PNGs
+                
+                
+-----
