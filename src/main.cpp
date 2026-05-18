@@ -119,6 +119,7 @@ void ComputeNormals(ObjModel* model); // Computa normais de um ObjModel, caso n�
 void LoadShadersFromFiles(); // Carrega os shaders de vértice e fragmento, criando um programa de GPU
 void LoadTextureImage(const char* filename); // Função que carrega imagens de textura
 void DrawVirtualObject(const char* object_name); // Desenha um objeto armazenado em g_VirtualScene
+void UpdatePlayer(float delta_time);
 GLuint LoadShader_Vertex(const char* filename);   // Carrega um vertex shader
 GLuint LoadShader_Fragment(const char* filename); // Carrega um fragment shader
 void LoadShader(const char* filename, GLuint shader_id); // Função utilizada pelas duas acima
@@ -206,6 +207,16 @@ float g_ForearmAngleX = 0.0f;
 // Variáveis que controlam translação do torso
 float g_TorsoPositionX = 0.0f;
 float g_TorsoPositionY = 0.0f;
+
+// Estado do Player
+glm::vec4 g_PlayerPosition = glm::vec4(0.0f, 0.0f, 1.5f, 1.0f);
+float g_PlayerYaw = 0.0f;
+float g_PlayerMoveSpeed = 2.0f;
+
+bool g_MoveForwardPressed = false;
+bool g_MoveBackwardPressed = false;
+bool g_MoveLeftPressed = false;
+bool g_MoveRightPressed = false;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
 bool g_UsePerspectiveProjection = true;
@@ -335,6 +346,13 @@ int main(int argc, char* argv[])
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
+        static float previous_time = (float)glfwGetTime();
+        float current_time = (float)glfwGetTime();
+        float delta_time = current_time - previous_time;
+        previous_time = current_time;
+
+        UpdatePlayer(delta_time);
+
         // Aqui executamos as operações de renderização
 
         // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
@@ -415,10 +433,10 @@ int main(int argc, char* argv[])
         #define PLANE  2
 
         // Desenhamos o modelo da esfera
-        model = Matrix_Translate(-1.0f,0.0f,0.0f)
+        model = Matrix_Translate(g_PlayerPosition.x, g_PlayerPosition.y, g_PlayerPosition.z)
               * Matrix_Rotate_Z(0.6f)
               * Matrix_Rotate_X(0.2f)
-              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+              * Matrix_Rotate_Y(g_PlayerYaw);
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, SPHERE);
         DrawVirtualObject("the_sphere");
@@ -622,6 +640,29 @@ void PopMatrix(glm::mat4& M)
     {
         M = g_MatrixStack.top();
         g_MatrixStack.pop();
+    }
+}
+
+void UpdatePlayer(float delta_time)
+{
+    glm::vec4 forward = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+    glm::vec4 right = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    glm::vec4 movement = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+
+    if (g_MoveForwardPressed)
+        movement += forward;
+    if (g_MoveBackwardPressed) 
+        movement -= forward;
+    if (g_MoveLeftPressed) 
+        movement -= right;
+    if (g_MoveRightPressed) 
+        movement += right;
+
+    if (norm(movement) > 0.0f)
+    {
+        movement = movement / norm(movement);
+        g_PlayerPosition += movement * g_PlayerMoveSpeed * delta_time;
+        g_PlayerPosition.w = 1.0f;
     }
 }
 
@@ -1213,6 +1254,20 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     Correcao_KeyCallback(key, action, mod);
     // =======================
 
+    bool pressed = action != GLFW_RELEASE;
+
+    if (key == GLFW_KEY_W)
+        g_MoveForwardPressed = pressed;
+
+    if (key == GLFW_KEY_S)
+        g_MoveBackwardPressed = pressed;
+
+    if (key == GLFW_KEY_A)
+        g_MoveLeftPressed = pressed;
+
+    if (key == GLFW_KEY_D)
+        g_MoveRightPressed = pressed;
+
     // Se o usuário pressionar a tecla ESC, fechamos a janela.
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
@@ -1251,6 +1306,8 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_ForearmAngleZ = 0.0f;
         g_TorsoPositionX = 0.0f;
         g_TorsoPositionY = 0.0f;
+        g_PlayerPosition = glm::vec4(0.0f, 0.0f, 1.5f, 1.0f);
+        g_PlayerYaw = 0.0f;
     }
 
     // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
