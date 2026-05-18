@@ -211,6 +211,7 @@ float g_TorsoPositionY = 0.0f;
 // Estado do Player
 glm::vec4 g_PlayerPosition = glm::vec4(0.0f, 0.0f, 1.5f, 1.0f);
 float g_PlayerYaw = 0.0f;
+float g_PlayerPitch = 0.0f;
 float g_PlayerMoveSpeed = 2.0f;
 
 bool g_MoveForwardPressed = false;
@@ -399,7 +400,12 @@ int main(int argc, char* argv[])
         else
         {
             float eye_height = 0.6f;
-            glm::vec4 forward = glm::vec4(sinf(g_PlayerYaw), 0.0f, cosf(g_PlayerYaw), 0.0f);
+            glm::vec4 forward = glm::vec4(
+                cosf(g_PlayerPitch) * sinf(g_PlayerYaw),
+                sinf(g_PlayerPitch),
+                cosf(g_PlayerPitch) * cosf(g_PlayerYaw),
+                0.0f
+            );
 
             camera_position_c  = g_PlayerPosition + glm::vec4(0.0f, eye_height, 0.0f, 0.0f);
             camera_view_vector = forward;
@@ -1222,6 +1228,16 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         else
         {
             g_PlayerYaw -= 0.01f*dx;
+            g_PlayerPitch -= 0.01f*dy;
+
+            float pitchmax = 3.14f/2.0f - 0.01f;
+            float pitchmin = -pitchmax;
+
+            if (g_PlayerPitch > pitchmax)
+                g_PlayerPitch = pitchmax;
+
+            if (g_PlayerPitch < pitchmin)
+                g_PlayerPitch = pitchmin;
         }
     
         // Atualizamos as variáveis globais para armazenar a posição atual do
@@ -1346,6 +1362,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_TorsoPositionY = 0.0f;
         g_PlayerPosition = glm::vec4(0.0f, 0.0f, 1.5f, 1.0f);
         g_PlayerYaw = 0.0f;
+        g_PlayerPitch = 0.0f;
     }
 
     // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
