@@ -24,6 +24,8 @@ uniform mat4 projection;
 #define BUNNY  1
 #define PLANE  2
 #define PLAYER  3
+#define MAP  4
+
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -148,6 +150,22 @@ void main()
             Kd0 = texture(TextureImage3, vec2(U,V)).rgb;
         else
             Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
+    }
+
+    else if (object_id == MAP)
+    {
+        vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
+        vec4 d = position_model - bbox_center;
+
+        float rho   = length(d);
+        float theta = atan(d.x,d.z);
+        float phi   = asin(d.y / rho);
+
+        U = (theta + M_PI) / 2.0 / M_PI;
+        V = (phi + M_PI_2) / M_PI;
+
+		// Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
+		Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
     }
 
     // Equação de Iluminação

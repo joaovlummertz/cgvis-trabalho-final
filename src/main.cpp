@@ -212,7 +212,7 @@ float g_TorsoPositionY = 0.0f;
 glm::vec4 g_PlayerPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 float g_PlayerYaw = 0.0f;
 float g_PlayerPitch = 0.0f;
-float g_PlayerMoveSpeed = 2.0f;
+float g_PlayerMoveSpeed = 15.0f;
 
 bool g_MoveForwardPressed = false;
 bool g_MoveBackwardPressed = false;
@@ -336,6 +336,10 @@ int main(int argc, char* argv[])
     ComputeNormals(&playermodel);
     BuildTrianglesAndAddToVirtualScene(&playermodel);
 
+    ObjModel mapintromodel("../../assets/OBJ/maps/intro.obj");
+    ComputeNormals(&mapintromodel);
+    BuildTrianglesAndAddToVirtualScene(&mapintromodel);
+
     if ( argc > 1 )
     {
         ObjModel model(argv[1]);
@@ -428,7 +432,7 @@ int main(int argc, char* argv[])
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
         float nearplane = -0.1f;  // Posição do "near plane"
-        float farplane  = -10.0f; // Posição do "far plane"
+        float farplane  = -100000.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -463,6 +467,7 @@ int main(int argc, char* argv[])
         #define BUNNY  1
         #define PLANE  2
         #define PLAYER  3
+        #define MAP  4
 
         // Desenhamos o modelo do player
         model = Matrix_Translate(g_PlayerPosition.x, g_PlayerPosition.y, g_PlayerPosition.z)
@@ -490,6 +495,18 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, PLANE);
         DrawVirtualObject("the_plane");
+
+        // Desenhamos o mapa
+        model = Matrix_Translate(0.0f, 0.0f, 0.0f)
+        * Matrix_Scale(0.01f, 0.01f, 0.01f);
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, MAP);
+        for (auto& pair : g_VirtualScene)
+            {
+                if (pair.first.find("Brush") != std::string::npos)
+                    DrawVirtualObject(pair.first.c_str());
+            }
+
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
