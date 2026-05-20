@@ -5,6 +5,7 @@
 layout (location = 0) in vec4 model_coefficients;
 layout (location = 1) in vec4 normal_coefficients;
 layout (location = 2) in vec2 texture_coefficients;
+layout (location = 3) in int material_id;
 
 // Matrizes computadas no código C++ e enviadas para a GPU
 uniform mat4 model;
@@ -19,6 +20,7 @@ out vec4 position_world;
 out vec4 position_model;
 out vec4 normal;
 out vec2 texcoords;
+flat out int fragment_material_id;
 
 void main()
 {
@@ -63,5 +65,7 @@ void main()
 
     // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
     texcoords = texture_coefficients;
-}
 
+    // IDs de material não devem ser interpolados entre fragmentos.
+    fragment_material_id = material_id;
+}

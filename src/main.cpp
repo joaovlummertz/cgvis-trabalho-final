@@ -657,6 +657,7 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage0"), 0);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage2"), 2);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage3"), 3);
     glUseProgram(0);
 }
 
@@ -844,6 +845,7 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
     std::vector<float>  model_coefficients;
     std::vector<float>  normal_coefficients;
     std::vector<float>  texture_coefficients;
+    std::vector<int>    material_ids;
 
     for (size_t shape = 0; shape < model->shapes.size(); ++shape)
     {
@@ -859,6 +861,9 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
         for (size_t triangle = 0; triangle < num_triangles; ++triangle)
         {
             assert(model->shapes[shape].mesh.num_face_vertices[triangle] == 3);
+            int material_id = -1;
+            if ( triangle < model->shapes[shape].mesh.material_ids.size() )
+                material_id = model->shapes[shape].mesh.material_ids[triangle];
 
             for (size_t vertex = 0; vertex < 3; ++vertex)
             {
@@ -905,6 +910,8 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
                     texture_coefficients.push_back( u );
                     texture_coefficients.push_back( v );
                 }
+
+                material_ids.push_back(material_id);
             }
         }
 
@@ -958,6 +965,19 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
         location = 2; // "(location = 1)" em "shader_vertex.glsl"
         number_of_dimensions = 2; // vec2 em "shader_vertex.glsl"
         glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(location);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    if ( !material_ids.empty() )
+    {
+        GLuint VBO_material_ids_id;
+        glGenBuffers(1, &VBO_material_ids_id);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO_material_ids_id);
+        glBufferData(GL_ARRAY_BUFFER, material_ids.size() * sizeof(int), NULL, GL_STATIC_DRAW);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, material_ids.size() * sizeof(int), material_ids.data());
+        location = 3; // "(location = 3)" em "shader_vertex.glsl"
+        glVertexAttribIPointer(location, 1, GL_INT, 0, 0);
         glEnableVertexAttribArray(location);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
@@ -1715,4 +1735,3 @@ void PrintObjModelInfo(ObjModel* model)
 
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
 // vim: set spell spelllang=pt_br :
-

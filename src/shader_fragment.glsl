@@ -12,6 +12,7 @@ in vec4 position_model;
 
 // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
 in vec2 texcoords;
+flat in int fragment_material_id;
 
 // Matrizes computadas no código C++ e enviadas para a GPU
 uniform mat4 model;
@@ -33,6 +34,7 @@ uniform vec4 bbox_max;
 uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
 uniform sampler2D TextureImage2;
+uniform sampler2D TextureImage3;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
@@ -138,12 +140,14 @@ void main()
 
     else if ( object_id == PLAYER )
     {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        // Coordenadas de textura do modelo, obtidas do arquivo OBJ.
         U = texcoords.x;
         V = texcoords.y;
 
-		// Obtemos a refletância difusa a partir da leitura da imagem TextureImage1
-		Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
+        if ( fragment_material_id == 1 )
+            Kd0 = texture(TextureImage3, vec2(U,V)).rgb;
+        else
+            Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
     }
 
     // Equação de Iluminação
@@ -169,4 +173,3 @@ void main()
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
     color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
 } 
-
