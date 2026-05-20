@@ -209,7 +209,7 @@ float g_TorsoPositionX = 0.0f;
 float g_TorsoPositionY = 0.0f;
 
 // Estado do Player
-glm::vec4 g_PlayerPosition = glm::vec4(0.0f, 0.0f, 1.5f, 1.0f);
+glm::vec4 g_PlayerPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 float g_PlayerYaw = 0.0f;
 float g_PlayerPitch = 0.0f;
 float g_PlayerMoveSpeed = 2.0f;
@@ -316,6 +316,8 @@ int main(int argc, char* argv[])
     // Carregamos duas imagens para serem utilizadas como textura
     LoadTextureImage("../../data/red_brick_diff_1k.jpg");      // TextureImage0
     LoadTextureImage("../../data/rocky_terrain_02_diff_1k.jpg"); // TextureImage1
+    LoadTextureImage("../../assets/SMD/DM_Base.bmp");      // TextureImage2
+    LoadTextureImage("../../assets/SMD/DM_Face.bmp");      // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
@@ -329,6 +331,10 @@ int main(int argc, char* argv[])
     ObjModel planemodel("../../data/plane.obj");
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
+
+    ObjModel playermodel("../../assets/OBJ/gordon.obj");
+    ComputeNormals(&playermodel);
+    BuildTrianglesAndAddToVirtualScene(&playermodel);
 
     if ( argc > 1 )
     {
@@ -456,25 +462,31 @@ int main(int argc, char* argv[])
         #define SPHERE 0
         #define BUNNY  1
         #define PLANE  2
+        #define PLAYER  3
+
+        // Desenhamos o modelo do player
+        model = Matrix_Translate(g_PlayerPosition.x, g_PlayerPosition.y, g_PlayerPosition.z)
+              * Matrix_Rotate_Y(g_PlayerYaw)
+              * Matrix_Scale(0.02f, 0.02f, 0.02f);
+        glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, PLAYER);
+        DrawVirtualObject("DM_Gordon_Head1");
 
         // Desenhamos o modelo da esfera
-        model = Matrix_Translate(g_PlayerPosition.x, g_PlayerPosition.y, g_PlayerPosition.z)
-              * Matrix_Rotate_Z(0.6f)
-              * Matrix_Rotate_X(0.2f)
-              * Matrix_Rotate_Y(g_PlayerYaw);
+        model = Matrix_Translate(0.0f, 0.0f, 0.0f);
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, SPHERE);
         DrawVirtualObject("the_sphere");
 
         // Desenhamos o modelo do coelho
-        model = Matrix_Translate(1.0f,0.0f,0.0f)
+        model = Matrix_Translate(0.0f,0.0f,0.0f)
               * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, BUNNY);
         DrawVirtualObject("the_bunny");
 
         // Desenhamos o plano do chão
-        model = Matrix_Translate(0.0f,-1.1f,0.0f);
+        model = Matrix_Translate(0.0f, 0.0f,0.0f);
         glUniformMatrix4fv(g_model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, PLANE);
         DrawVirtualObject("the_plane");

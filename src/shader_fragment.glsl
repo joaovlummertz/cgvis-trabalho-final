@@ -22,6 +22,7 @@ uniform mat4 projection;
 #define SPHERE 0
 #define BUNNY  1
 #define PLANE  2
+#define PLAYER  3
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -133,6 +134,16 @@ void main()
 
 		// Obtemos a refletância difusa a partir da leitura da imagem TextureImage1
 		Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
+    }
+
+    else if ( object_id == PLAYER )
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+
+		// Obtemos a refletância difusa a partir da leitura da imagem TextureImage1
+		Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
     }
 
     // Equação de Iluminação
