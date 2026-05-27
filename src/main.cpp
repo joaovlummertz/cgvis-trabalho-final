@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
     // Criamos uma janela do sistema operacional, com 800 colunas e 600 linhas
     // de pixels, e com título "INF01047 ...".
     GLFWwindow *window;
-    window = glfwCreateWindow(800, 600, "INF01047 - Seu Cartao - Seu Nome", NULL, NULL);
+    window = glfwCreateWindow(800, 600, "INF01047 - Meia-Vida 3", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -319,17 +319,6 @@ int main(int argc, char *argv[])
     LoadTextureImage("../../assets/SMD/DM_Face.bmp");            // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel spheremodel("../../data/sphere.obj");
-    ComputeNormals(&spheremodel);
-    BuildTrianglesAndAddToVirtualScene(&spheremodel);
-
-    ObjModel bunnymodel("../../data/bunny.obj");
-    ComputeNormals(&bunnymodel);
-    BuildTrianglesAndAddToVirtualScene(&bunnymodel);
-
-    ObjModel planemodel("../../data/plane.obj");
-    ComputeNormals(&planemodel);
-    BuildTrianglesAndAddToVirtualScene(&planemodel);
 
     ObjModel playermodel("../../assets/OBJ/gordon.obj");
     ComputeNormals(&playermodel);
@@ -338,12 +327,6 @@ int main(int argc, char *argv[])
     ObjModel mapintromodel("../../assets/OBJ/maps/intro.obj");
     ComputeNormals(&mapintromodel);
     BuildTrianglesAndAddToVirtualScene(&mapintromodel);
-
-    if (argc > 1)
-    {
-        ObjModel model(argv[1]);
-        BuildTrianglesAndAddToVirtualScene(&model);
-    }
 
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
@@ -461,9 +444,6 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(g_view_uniform, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(g_projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
-#define SPHERE 0
-#define BUNNY 1
-#define PLANE 2
 #define PLAYER 3
 #define MAP 4
 
@@ -475,24 +455,6 @@ int main(int argc, char *argv[])
             glUniform1i(g_object_id_uniform, PLAYER);
             DrawVirtualObject("DM_Gordon_Head1");
         }
-
-        // Desenhamos o modelo da esfera
-        model = Matrix_Translate(0.0f, 0.0f, 0.0f);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, SPHERE);
-        DrawVirtualObject("the_sphere");
-
-        // Desenhamos o modelo do coelho
-        model = Matrix_Translate(0.0f, 0.0f, 0.0f) * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, BUNNY);
-        DrawVirtualObject("the_bunny");
-
-        // Desenhamos o plano do chão
-        model = Matrix_Translate(0.0f, 0.0f, 0.0f);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, PLANE);
-        DrawVirtualObject("the_plane");
 
         // Desenhamos o mapa
         model = Matrix_Translate(0.0f, 0.0f, 0.0f) * Matrix_Scale(0.01f, 0.01f, 0.01f);
