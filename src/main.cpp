@@ -113,11 +113,11 @@ void PopMatrix(glm::mat4 &M);
 
 // Declaração de várias funções utilizadas em main().  Essas estão definidas
 // logo após a definição de main() neste arquivo.
-void BuildTrianglesAndAddToVirtualScene(ObjModel *); // Constrói representação de um ObjModel como malha de triângulos para renderização
-void ComputeNormals(ObjModel *model);                // Computa normais de um ObjModel, caso não existam.
-void LoadShadersFromFiles();                         // Carrega os shaders de vértice e fragmento, criando um programa de GPU
-void LoadTextureImage(const char *filename);         // Função que carrega imagens de textura
-void DrawVirtualObject(const char *object_name);     // Desenha um objeto armazenado em g_VirtualScene
+void BuildTrianglesAndAddToVirtualScene(ObjModel *, const std::string &basepath); // Constrói representação de um ObjModel como malha de triângulos para renderização
+void ComputeNormals(ObjModel *model);                                             // Computa normais de um ObjModel, caso não existam.
+void LoadShadersFromFiles();                                                      // Carrega os shaders de vértice e fragmento, criando um programa de GPU
+GLuint LoadTextureImage(const char *filename);                                    // Função que carrega imagens de textura
+void DrawVirtualObject(const char *object_name);                                  // Desenha um objeto armazenado em g_VirtualScene
 void UpdatePlayer(float delta_time);
 GLuint LoadShader_Vertex(const char *filename);                              // Carrega um vertex shader
 GLuint LoadShader_Fragment(const char *filename);                            // Carrega um fragment shader
@@ -164,6 +164,7 @@ struct SceneObject
     GLuint vertex_array_object_id; // ID do VAO onde estão armazenados os atributos do modelo
     glm::vec3 bbox_min;            // Axis-Aligned Bounding Box do objeto
     glm::vec3 bbox_max;
+    GLuint texture_id;
 };
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
@@ -235,9 +236,6 @@ GLint g_projection_uniform;
 GLint g_object_id_uniform;
 GLint g_bbox_min_uniform;
 GLint g_bbox_max_uniform;
-
-// Número de texturas carregadas pela função LoadTextureImage()
-GLuint g_NumLoadedTextures = 0;
 
 int main(int argc, char *argv[])
 {
@@ -312,21 +310,15 @@ int main(int argc, char *argv[])
     //
     LoadShadersFromFiles();
 
-    // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/red_brick_diff_1k.jpg");        // TextureImage0
-    LoadTextureImage("../../data/rocky_terrain_02_diff_1k.jpg"); // TextureImage1
-    LoadTextureImage("../../assets/SMD/DM_Base.bmp");            // TextureImage2
-    LoadTextureImage("../../assets/SMD/DM_Face.bmp");            // TextureImage3
-
     // Construímos a representação de objetos geométricos através de malhas de triângulos
 
     ObjModel playermodel("../../assets/OBJ/gordon.obj");
     ComputeNormals(&playermodel);
-    BuildTrianglesAndAddToVirtualScene(&playermodel);
+    BuildTrianglesAndAddToVirtualScene(&playermodel, "../../assets/SMD/");
 
-    ObjModel mapintromodel("../../assets/OBJ/maps/intro.obj");
-    ComputeNormals(&mapintromodel);
-    BuildTrianglesAndAddToVirtualScene(&mapintromodel);
+    // ObjModel mapintromodel("../../assets/OBJ/maps/intro.obj");
+    // ComputeNormals(&mapintromodel);
+    // BuildTrianglesAndAddToVirtualScene(&mapintromodel, "../../assets/OBJ/maps/");
 
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
@@ -452,19 +444,17 @@ int main(int argc, char *argv[])
         {
             model = Matrix_Translate(g_PlayerPosition.x, g_PlayerPosition.y, g_PlayerPosition.z) * Matrix_Rotate_Y(g_PlayerYaw) * Matrix_Scale(0.02f, 0.02f, 0.02f);
             glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            glUniform1i(g_object_id_uniform, PLAYER);
-            DrawVirtualObject("DM_Gordon_Head1");
+            DrawVirtualObject("Gordon_Hi");
         }
 
         // Desenhamos o mapa
-        model = Matrix_Translate(0.0f, 0.0f, 0.0f) * Matrix_Scale(0.01f, 0.01f, 0.01f);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, MAP);
-        for (auto &pair : g_VirtualScene)
-        {
-            if (pair.first.find("Brush") != std::string::npos)
-                DrawVirtualObject(pair.first.c_str());
-        }
+        // model = Matrix_Translate(0.0f, 0.0f, 0.0f) * Matrix_Scale(0.01f, 0.01f, 0.01f);
+        // glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        // for (auto &pair : g_VirtualScene)
+        // {
+        //     if (pair.first.find("Brush") != std::string::npos)
+        //         DrawVirtualObject(pair.first.c_str());
+        // }
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
@@ -500,7 +490,7 @@ int main(int argc, char *argv[])
 }
 
 // Função que carrega uma imagem para ser utilizada como textura
-void LoadTextureImage(const char *filename)
+GLuint LoadTextureImage(const char *filename)
 {
     printf("Carregando imagem \"%s\"... ", filename);
 
@@ -539,48 +529,41 @@ void LoadTextureImage(const char *filename)
     glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
     glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
 
-    GLuint textureunit = g_NumLoadedTextures;
-    glActiveTexture(GL_TEXTURE0 + textureunit);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
-    glBindSampler(textureunit, sampler_id);
+    glBindSampler(0, sampler_id);
 
     stbi_image_free(data);
 
-    g_NumLoadedTextures += 1;
+    return (texture_id);
 }
 
 // Função que desenha um objeto armazenado em g_VirtualScene. Veja definição
 // dos objetos na função BuildTrianglesAndAddToVirtualScene().
-void DrawVirtualObject(const char *object_name)
+void DrawVirtualObject(const char *prefix)
 {
-    // "Ligamos" o VAO. Informamos que queremos utilizar os atributos de
-    // vértices apontados pelo VAO criado pela função BuildTrianglesAndAddToVirtualScene(). Veja
-    // comentários detalhados dentro da definição de BuildTrianglesAndAddToVirtualScene().
-    glBindVertexArray(g_VirtualScene[object_name].vertex_array_object_id);
+    for (auto &pair : g_VirtualScene)
+    {
+        if (pair.first.find(prefix) == std::string::npos)
+            continue;
 
-    // Setamos as variáveis "bbox_min" e "bbox_max" do fragment shader
-    // com os parâmetros da axis-aligned bounding box (AABB) do modelo.
-    glm::vec3 bbox_min = g_VirtualScene[object_name].bbox_min;
-    glm::vec3 bbox_max = g_VirtualScene[object_name].bbox_max;
-    glUniform4f(g_bbox_min_uniform, bbox_min.x, bbox_min.y, bbox_min.z, 1.0f);
-    glUniform4f(g_bbox_max_uniform, bbox_max.x, bbox_max.y, bbox_max.z, 1.0f);
+        SceneObject &obj = pair.second;
 
-    // Pedimos para a GPU rasterizar os vértices dos eixos XYZ
-    // apontados pelo VAO como linhas. Veja a definição de
-    // g_VirtualScene[""] dentro da função BuildTrianglesAndAddToVirtualScene(), e veja
-    // a documentação da função glDrawElements() em
-    // http://docs.gl/gl3/glDrawElements.
-    glDrawElements(
-        g_VirtualScene[object_name].rendering_mode,
-        g_VirtualScene[object_name].num_indices,
-        GL_UNSIGNED_INT,
-        (void *)(g_VirtualScene[object_name].first_index * sizeof(GLuint)));
+        glBindVertexArray(obj.vertex_array_object_id);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, obj.texture_id);
+        glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage"), 0);
 
-    // "Desligamos" o VAO, evitando assim que operações posteriores venham a
-    // alterar o mesmo. Isso evita bugs.
-    glBindVertexArray(0);
+        glUniform4f(g_bbox_min_uniform, obj.bbox_min.x, obj.bbox_min.y, obj.bbox_min.z, 1.0f);
+        glUniform4f(g_bbox_max_uniform, obj.bbox_max.x, obj.bbox_max.y, obj.bbox_max.z, 1.0f);
+
+        glDrawElements(obj.rendering_mode, obj.num_indices, GL_UNSIGNED_INT,
+                       (void *)(obj.first_index * sizeof(GLuint)));
+
+        glBindVertexArray(0);
+    }
 }
 
 // Função que carrega os shaders de vértices e de fragmentos que serão
@@ -622,7 +605,6 @@ void LoadShadersFromFiles()
     g_model_uniform = glGetUniformLocation(g_GpuProgramID, "model");           // Variável da matriz "model"
     g_view_uniform = glGetUniformLocation(g_GpuProgramID, "view");             // Variável da matriz "view" em shader_vertex.glsl
     g_projection_uniform = glGetUniformLocation(g_GpuProgramID, "projection"); // Variável da matriz "projection" em shader_vertex.glsl
-    g_object_id_uniform = glGetUniformLocation(g_GpuProgramID, "object_id");   // Variável "object_id" em shader_fragment.glsl
     g_bbox_min_uniform = glGetUniformLocation(g_GpuProgramID, "bbox_min");
     g_bbox_max_uniform = glGetUniformLocation(g_GpuProgramID, "bbox_max");
 
@@ -808,7 +790,7 @@ void ComputeNormals(ObjModel *model)
 }
 
 // Constrói triângulos para futura renderização a partir de um ObjModel.
-void BuildTrianglesAndAddToVirtualScene(ObjModel *model)
+void BuildTrianglesAndAddToVirtualScene(ObjModel *model, const std::string &basepath)
 {
     GLuint vertex_array_object_id;
     glGenVertexArrays(1, &vertex_array_object_id);
@@ -818,7 +800,6 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model)
     std::vector<float> model_coefficients;
     std::vector<float> normal_coefficients;
     std::vector<float> texture_coefficients;
-    std::vector<int> material_ids;
 
     for (size_t shape = 0; shape < model->shapes.size(); ++shape)
     {
@@ -831,12 +812,24 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model)
         glm::vec3 bbox_min = glm::vec3(maxval, maxval, maxval);
         glm::vec3 bbox_max = glm::vec3(minval, minval, minval);
 
+        GLuint tex_id = 0;
+        int mat_id = model->shapes[shape].mesh.material_ids[0];
+        if (mat_id >= 0 && mat_id < (int)model->materials.size())
+        {
+            const std::string &texname = model->materials[mat_id].diffuse_texname;
+
+            printf("Shape '%s' -> material '%s' -> texture '%s'\n",
+                   model->shapes[shape].name.c_str(),
+                   model->materials[mat_id].name.c_str(),
+                   texname.c_str());
+
+            if (!texname.empty())
+                tex_id = LoadTextureImage((basepath + texname).c_str());
+        }
+
         for (size_t triangle = 0; triangle < num_triangles; ++triangle)
         {
             assert(model->shapes[shape].mesh.num_face_vertices[triangle] == 3);
-            int material_id = -1;
-            if (triangle < model->shapes[shape].mesh.material_ids.size())
-                material_id = model->shapes[shape].mesh.material_ids[triangle];
 
             for (size_t vertex = 0; vertex < 3; ++vertex)
             {
@@ -860,11 +853,6 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model)
                 bbox_max.y = std::max(bbox_max.y, vy);
                 bbox_max.z = std::max(bbox_max.z, vz);
 
-                // Inspecionando o código da tinyobjloader, o aluno Bernardo
-                // Sulzbach (2017/1) apontou que a maneira correta de testar se
-                // existem normais e coordenadas de textura no ObjModel é
-                // comparando se o índice retornado é -1. Fazemos isso abaixo.
-
                 if (idx.normal_index != -1)
                 {
                     const float nx = model->attrib.normals[3 * idx.normal_index + 0];
@@ -883,14 +871,13 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model)
                     texture_coefficients.push_back(u);
                     texture_coefficients.push_back(v);
                 }
-
-                material_ids.push_back(material_id);
             }
         }
 
         size_t last_index = indices.size() - 1;
 
         SceneObject theobject;
+        theobject.texture_id = tex_id;
         theobject.name = model->shapes[shape].name;
         theobject.first_index = first_index;                  // Primeiro índice
         theobject.num_indices = last_index - first_index + 1; // Número de indices
@@ -938,19 +925,6 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model)
         location = 2;             // "(location = 1)" em "shader_vertex.glsl"
         number_of_dimensions = 2; // vec2 em "shader_vertex.glsl"
         glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(location);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    if (!material_ids.empty())
-    {
-        GLuint VBO_material_ids_id;
-        glGenBuffers(1, &VBO_material_ids_id);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO_material_ids_id);
-        glBufferData(GL_ARRAY_BUFFER, material_ids.size() * sizeof(int), NULL, GL_STATIC_DRAW);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, material_ids.size() * sizeof(int), material_ids.data());
-        location = 3; // "(location = 3)" em "shader_vertex.glsl"
-        glVertexAttribIPointer(location, 1, GL_INT, 0, 0);
         glEnableVertexAttribArray(location);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }

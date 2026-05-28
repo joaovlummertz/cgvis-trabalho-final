@@ -20,7 +20,6 @@ out vec4 position_world;
 out vec4 position_model;
 out vec4 normal;
 out vec2 texcoords;
-flat out int fragment_material_id;
 
 void main()
 {
@@ -65,7 +64,4 @@ void main()
 
     // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
     texcoords = texture_coefficients;
-
-    // IDs de material não devem ser interpolados entre fragmentos.
-    fragment_material_id = material_id;
 }

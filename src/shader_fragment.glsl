@@ -12,16 +12,11 @@ in vec4 position_model;
 
 // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
 in vec2 texcoords;
-flat in int fragment_material_id;
 
 // Matrizes computadas no código C++ e enviadas para a GPU
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-
-// Identificador que define qual objeto está sendo desenhado no momento
-#define PLAYER  3
-#define MAP  4
 
 uniform int object_id;
 
@@ -29,11 +24,8 @@ uniform int object_id;
 uniform vec4 bbox_min;
 uniform vec4 bbox_max;
 
-// Variáveis para acesso das imagens de textura
-uniform sampler2D TextureImage0;
-uniform sampler2D TextureImage1;
-uniform sampler2D TextureImage2;
-uniform sampler2D TextureImage3;
+// Variável para acesso das imagens de textura
+uniform sampler2D TextureImage;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
@@ -71,35 +63,7 @@ void main()
     float V = 0.0;
 
 	// Coeficiente de refletância difusa
-	vec3 Kd0;
-
-    if ( object_id == PLAYER )
-    {
-        // Coordenadas de textura do modelo, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-
-        if ( fragment_material_id == 1 )
-            Kd0 = texture(TextureImage3, vec2(U,V)).rgb;
-        else
-            Kd0 = texture(TextureImage2, vec2(U,V)).rgb;
-    }
-
-    else if (object_id == MAP)
-    {
-        vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
-        vec4 d = position_model - bbox_center;
-
-        float rho   = length(d);
-        float theta = atan(d.x,d.z);
-        float phi   = asin(d.y / rho);
-
-        U = (theta + M_PI) / 2.0 / M_PI;
-        V = (phi + M_PI_2) / M_PI;
-
-		// Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
-		Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
-    }
+    vec3 Kd0 = texture(TextureImage, texcoords).rgb;
 
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
