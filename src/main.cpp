@@ -316,9 +316,9 @@ int main(int argc, char *argv[])
     ComputeNormals(&playermodel);
     BuildTrianglesAndAddToVirtualScene(&playermodel, "../../assets/SMD/");
 
-    // ObjModel mapintromodel("../../assets/OBJ/maps/intro.obj");
-    // ComputeNormals(&mapintromodel);
-    // BuildTrianglesAndAddToVirtualScene(&mapintromodel, "../../assets/OBJ/maps/");
+    ObjModel mapintromodel("../../assets/OBJ/maps/intro.obj");
+    ComputeNormals(&mapintromodel);
+    BuildTrianglesAndAddToVirtualScene(&mapintromodel, "../../assets/textures/");
 
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
@@ -448,13 +448,10 @@ int main(int argc, char *argv[])
         }
 
         // Desenhamos o mapa
-        // model = Matrix_Translate(0.0f, 0.0f, 0.0f) * Matrix_Scale(0.01f, 0.01f, 0.01f);
-        // glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        // for (auto &pair : g_VirtualScene)
-        // {
-        //     if (pair.first.find("Brush") != std::string::npos)
-        //         DrawVirtualObject(pair.first.c_str());
-        // }
+        model = Matrix_Translate(0.0f, 0.0f, 0.0f) * Matrix_Scale(0.02f, 0.02f, 0.02f);
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+
+        DrawVirtualObject("Brush");
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
@@ -516,8 +513,8 @@ GLuint LoadTextureImage(const char *filename)
     glGenSamplers(1, &sampler_id);
 
     // Veja slides 95-96 do documento Aula_20_Mapeamento_de_Texturas.pdf
-    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     // Parâmetros de amostragem da textura.
     glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

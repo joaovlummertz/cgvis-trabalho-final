@@ -1,5 +1,5 @@
 # J.A.C.K. 1.1.3773 Freeware MTL file
-# 62 materials
+# 38 materials
 newmtl ~SPOTBLUE
 map_Ka ~spotblue.tga
 map_Kd ~spotblue.tga
@@ -88,39 +88,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl {GRATESTEP2
-map_Ka {gratestep2.tga
-map_Kd {gratestep2.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl GENERIC025
-map_Ka generic025.tga
-map_Kd generic025.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl SUBWAY_SEAT
-map_Ka subway_seat.tga
-map_Kd subway_seat.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl C1A1DOOREDGE
 map_Ka c1a1dooredge.tga
 map_Kd c1a1dooredge.tga
@@ -143,42 +110,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl SUBWAY_CEILING
-map_Ka subway_ceiling.tga
-map_Kd subway_ceiling.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl GENERIC028
 map_Ka generic028.tga
 map_Kd generic028.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl SUBWAY_INPANEL
-map_Ka subway_inpanel.tga
-map_Kd subway_inpanel.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl SUBWAY_INEND
-map_Ka subway_inend.tga
-map_Kd subway_inend.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -231,42 +165,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl SUBWAY_OUTEND
-map_Ka subway_outend.tga
-map_Kd subway_outend.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl AAATRIGGER
-map_Ka aaatrigger.tga
-map_Kd aaatrigger.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl ~SPOTYELLOW
 map_Ka ~spotyellow.tga
 map_Kd ~spotyellow.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl SUBWAY_DOOR
-map_Ka subway_door.tga
-map_Kd subway_door.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -286,31 +187,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl SUBWAYFLOOR2
-map_Ka subwayfloor2.tga
-map_Kd subwayfloor2.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl C1A3WALL05
 map_Ka c1a3wall05.tga
 map_Kd c1a3wall05.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl LAB1_GEAR2
-map_Ka lab1_gear2.tga
-map_Kd lab1_gear2.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -330,17 +209,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl LAB1_GEAR3
-map_Ka lab1_gear3.tga
-map_Kd lab1_gear3.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl {GRATE2A
 map_Ka {grate2a.tga
 map_Kd {grate2a.tga
@@ -352,42 +220,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl SUBWAY_FLOOR1
-map_Ka subway_floor1.tga
-map_Kd subway_floor1.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl LAB1_DOOR2A
 map_Ka lab1_door2a.tga
 map_Kd lab1_door2a.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl -0OUT_W3
-map_Ka -0out_w3.tga
-map_Kd -0out_w3.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl LAB1_DOOR2B
-map_Ka lab1_door2b.tga
-map_Kd lab1_door2b.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -418,17 +253,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl {RAIL1C
-map_Ka {rail1c.tga
-map_Kd {rail1c.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl OUT_WALL8
 map_Ka out_wall8.tga
 map_Kd out_wall8.tga
@@ -440,31 +264,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl SUBWAY_OUTSIDE
-map_Ka subway_outside.tga
-map_Kd subway_outside.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl OUT_WALL9
 map_Ka out_wall9.tga
 map_Kd out_wall9.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl ORIGIN
-map_Ka origin.tga
-map_Kd origin.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -517,17 +319,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl +0~LAB_CRT2
-map_Ka +0~lab_crt2.tga
-map_Kd +0~lab_crt2.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl CON1_WALL01P
 map_Ka con1_wall01p.tga
 map_Kd con1_wall01p.tga
@@ -550,42 +341,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl LAB1_B4
-map_Ka lab1_b4.tga
-map_Kd lab1_b4.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl EXIT1
-map_Ka exit1.tga
-map_Kd exit1.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl TNNL_W4A
 map_Ka tnnl_w4a.tga
 map_Kd tnnl_w4a.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl AIR_C1
-map_Ka air_c1.tga
-map_Kd air_c1.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -652,28 +410,6 @@ illum 2
 newmtl SILO2_C1C
 map_Ka silo2_c1c.tga
 map_Kd silo2_c1c.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl SUBWAY_LIGHTS
-map_Ka subway_lights.tga
-map_Kd subway_lights.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl SUBWAY_SEAT2
-map_Ka subway_seat2.tga
-map_Kd subway_seat2.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
