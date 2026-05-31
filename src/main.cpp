@@ -218,6 +218,8 @@ bool g_MoveForwardPressed = false;
 bool g_MoveBackwardPressed = false;
 bool g_MoveLeftPressed = false;
 bool g_MoveRightPressed = false;
+bool g_MoveUpPressed = false;
+bool g_MoveDownPressed = false;
 
 // Variável que controla o tipo da câmera
 bool g_UseFirstPersonCamera = false;
@@ -283,6 +285,8 @@ int main(int argc, char *argv[])
     glfwSetCursorPosCallback(window, CursorPosCallback);
     // ... ou rolar a "rodinha" do mouse.
     glfwSetScrollCallback(window, ScrollCallback);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // Indicamos que as chamadas OpenGL deverão renderizar nesta janela
     glfwMakeContextCurrent(window);
@@ -366,6 +370,9 @@ int main(int argc, char *argv[])
 
         if (!g_UseFirstPersonCamera)
         {
+
+            g_PlayerYaw = g_CameraTheta + 3.14f;
+
             // Computamos a posição da câmera utilizando coordenadas esféricas.  As
             // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
             // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
@@ -377,9 +384,9 @@ int main(int argc, char *argv[])
 
             // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
             // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-            camera_position_c = glm::vec4(x, y, z, 1.0f);             // Ponto "c", centro da câmera
-            camera_lookat_l = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);      // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-            camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
+            camera_position_c = glm::vec4(x, y, z, 0.0f) + g_PlayerPosition;        // Ponto "c", centro da câmera
+            camera_lookat_l = g_PlayerPosition + glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+            camera_view_vector = camera_lookat_l - camera_position_c;               // Vetor "view", sentido para onde a câmera está virada
         }
         else
         {
@@ -391,8 +398,8 @@ int main(int argc, char *argv[])
                 0.0f);
 
             camera_position_c = g_PlayerPosition + glm::vec4(0.0f, eye_height, 0.0f, 0.0f);
-            camera_view_vector = forward;
             camera_lookat_l = camera_position_c + camera_view_vector;
+            camera_view_vector = forward;
         }
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
@@ -638,17 +645,11 @@ void UpdatePlayer(float delta_time)
 {
     glm::vec4 forward;
     glm::vec4 right;
+    glm::vec4 up;
 
-    if (!g_UseFirstPersonCamera)
-    {
-        forward = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
-        right = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
-    }
-    else
-    {
-        forward = glm::vec4(sinf(g_PlayerYaw), 0.0f, cosf(g_PlayerYaw), 0.0f);
-        right = glm::vec4(-forward.z, 0.0f, forward.x, 0.0f);
-    }
+    forward = glm::vec4(sinf(g_PlayerYaw), 0.0f, cosf(g_PlayerYaw), 0.0f);
+    right = glm::vec4(-forward.z, 0.0f, forward.x, 0.0f);
+    up = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
     glm::vec4 movement = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -660,6 +661,10 @@ void UpdatePlayer(float delta_time)
         movement -= right;
     if (g_MoveRightPressed)
         movement += right;
+    if (g_MoveUpPressed)
+        movement += up;
+    if (g_MoveDownPressed)
+        movement -= up;
 
     if (norm(movement) > 0.0f)
     {
@@ -1182,48 +1187,46 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
     // parâmetros que definem a posição da câmera dentro da cena virtual.
     // Assim, temos que o usuário consegue controlar a câmera.
 
-    if (g_LeftMouseButtonPressed)
+    // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
+    float dx = xpos - g_LastCursorPosX;
+    float dy = ypos - g_LastCursorPosY;
+
+    if (!g_UseFirstPersonCamera)
     {
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-        float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
 
-        if (!g_UseFirstPersonCamera)
-        {
-            // Atualizamos parâmetros da câmera com os deslocamentos
-            g_CameraTheta -= 0.01f * dx;
-            g_CameraPhi += 0.01f * dy;
+        // Atualizamos parâmetros da câmera com os deslocamentos
+        g_CameraTheta -= 0.01f * dx;
+        g_CameraPhi += 0.01f * dy;
 
-            // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
-            float phimax = 3.141592f / 2;
-            float phimin = -phimax;
+        // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
+        float phimax = 3.141592f / 2;
+        float phimin = -phimax;
 
-            if (g_CameraPhi > phimax)
-                g_CameraPhi = phimax;
+        if (g_CameraPhi > phimax)
+            g_CameraPhi = phimax;
 
-            if (g_CameraPhi < phimin)
-                g_CameraPhi = phimin;
-        }
-        else
-        {
-            g_PlayerYaw -= 0.01f * dx;
-            g_PlayerPitch -= 0.01f * dy;
-
-            float pitchmax = 3.14f / 2.0f - 0.01f;
-            float pitchmin = -pitchmax;
-
-            if (g_PlayerPitch > pitchmax)
-                g_PlayerPitch = pitchmax;
-
-            if (g_PlayerPitch < pitchmin)
-                g_PlayerPitch = pitchmin;
-        }
-
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
-        g_LastCursorPosX = xpos;
-        g_LastCursorPosY = ypos;
+        if (g_CameraPhi < phimin)
+            g_CameraPhi = phimin;
     }
+    else
+    {
+        g_PlayerYaw -= 0.01f * dx;
+        g_PlayerPitch -= 0.01f * dy;
+
+        float pitchmax = 3.14f / 2.0f - 0.01f;
+        float pitchmin = -pitchmax;
+
+        if (g_PlayerPitch > pitchmax)
+            g_PlayerPitch = pitchmax;
+
+        if (g_PlayerPitch < pitchmin)
+            g_PlayerPitch = pitchmin;
+    }
+
+    // Atualizamos as variáveis globais para armazenar a posição atual do
+    // cursor como sendo a última posição conhecida do cursor.
+    g_LastCursorPosX = xpos;
+    g_LastCursorPosY = ypos;
 
     if (g_RightMouseButtonPressed)
     {
@@ -1301,6 +1304,12 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_D)
         g_MoveRightPressed = pressed;
 
+    if (key == GLFW_KEY_SPACE)
+        g_MoveUpPressed = pressed;
+
+    if (key == GLFW_KEY_LEFT_SHIFT)
+        g_MoveDownPressed = pressed;
+
     // Se o usuário pressionar a tecla ESC, fechamos a janela.
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
@@ -1327,21 +1336,6 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_Z && action == GLFW_PRESS)
     {
         g_AngleZ += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
-    }
-
-    // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
-    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
-    {
-        g_AngleX = 0.0f;
-        g_AngleY = 0.0f;
-        g_AngleZ = 0.0f;
-        g_ForearmAngleX = 0.0f;
-        g_ForearmAngleZ = 0.0f;
-        g_TorsoPositionX = 0.0f;
-        g_TorsoPositionY = 0.0f;
-        g_PlayerPosition = glm::vec4(0.0f, 0.0f, 1.5f, 1.0f);
-        g_PlayerYaw = 0.0f;
-        g_PlayerPitch = 0.0f;
     }
 
     // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
