@@ -91,7 +91,6 @@ void PushMatrix(glm::mat4 M);
 void PopMatrix(glm::mat4 &M);
 
 void BuildTrianglesAndAddToVirtualScene(ObjModel *, const std::string &basepath); // Constrói representação de um ObjModel como malha de triângulos para renderização
-void ComputeNormals(ObjModel *model);                                             // Computa normais de um ObjModel, caso não existam.
 void LoadShadersFromFiles();                                                      // Carrega os shaders de vértice e fragmento, criando um programa de GPU
 GLuint LoadTextureImage(const char *filename);                                    // Função que carrega imagens de textura
 void DrawVirtualObject(const char *object_name);                                  // Desenha um objeto armazenado em g_VirtualScene
@@ -254,11 +253,9 @@ int main(int argc, char *argv[])
     // Construímos a representação de objetos geométricos através de malhas de triângulos
 
     ObjModel playermodel("../../assets/OBJ/gordon.obj");
-    ComputeNormals(&playermodel);
     BuildTrianglesAndAddToVirtualScene(&playermodel, "../../assets/SMD/");
 
     ObjModel mapintromodel("../../assets/OBJ/maps/intro.obj");
-    ComputeNormals(&mapintromodel);
     BuildTrianglesAndAddToVirtualScene(&mapintromodel, "../../assets/textures/");
 
     // Habilitamos o Z-buffer. Veja slides 104-116 do documento Aula_09_Projecoes.pdf.
@@ -575,123 +572,6 @@ void UpdatePlayer(float delta_time)
         movement = movement / norm(movement);
         g_PlayerPosition += movement * g_PlayerMoveSpeed * delta_time;
         g_PlayerPosition.w = 1.0f;
-    }
-}
-
-// Função que computa as normais de um ObjModel, caso elas não tenham sido
-// especificadas dentro do arquivo ".obj"
-void ComputeNormals(ObjModel *model)
-{
-    if (!model->attrib.normals.empty())
-        return;
-
-    // Primeiro computamos as normais para todos os TRIÂNGULOS.
-    // Segundo, computamos as normais dos VÉRTICES através do método proposto
-    // por Gouraud, onde a normal de cada vértice vai ser a média das normais de
-    // todas as faces que compartilham este vértice e que pertencem ao mesmo "smoothing group".
-
-    // Obtemos a lista dos smoothing groups que existem no objeto
-    std::set<unsigned int> sgroup_ids;
-    for (size_t shape = 0; shape < model->shapes.size(); ++shape)
-    {
-        size_t num_triangles = model->shapes[shape].mesh.num_face_vertices.size();
-
-        assert(model->shapes[shape].mesh.smoothing_group_ids.size() == num_triangles);
-
-        for (size_t triangle = 0; triangle < num_triangles; ++triangle)
-        {
-            assert(model->shapes[shape].mesh.num_face_vertices[triangle] == 3);
-            unsigned int sgroup = model->shapes[shape].mesh.smoothing_group_ids[triangle];
-            assert(sgroup >= 0);
-            sgroup_ids.insert(sgroup);
-        }
-    }
-
-    size_t num_vertices = model->attrib.vertices.size() / 3;
-    model->attrib.normals.reserve(3 * num_vertices);
-
-    // Processamos um smoothing group por vez
-    for (const unsigned int &sgroup : sgroup_ids)
-    {
-        std::vector<int> num_triangles_per_vertex(num_vertices, 0);
-        std::vector<glm::vec4> vertex_normals(num_vertices, glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-
-        // Acumulamos as normais dos vértices de todos triângulos deste smoothing group
-        for (size_t shape = 0; shape < model->shapes.size(); ++shape)
-        {
-            size_t num_triangles = model->shapes[shape].mesh.num_face_vertices.size();
-
-            for (size_t triangle = 0; triangle < num_triangles; ++triangle)
-            {
-                unsigned int sgroup_tri = model->shapes[shape].mesh.smoothing_group_ids[triangle];
-
-                if (sgroup_tri != sgroup)
-                    continue;
-
-                glm::vec4 vertices[3];
-                for (size_t vertex = 0; vertex < 3; ++vertex)
-                {
-                    tinyobj::index_t idx = model->shapes[shape].mesh.indices[3 * triangle + vertex];
-                    const float vx = model->attrib.vertices[3 * idx.vertex_index + 0];
-                    const float vy = model->attrib.vertices[3 * idx.vertex_index + 1];
-                    const float vz = model->attrib.vertices[3 * idx.vertex_index + 2];
-                    vertices[vertex] = glm::vec4(vx, vy, vz, 1.0);
-                }
-
-                const glm::vec4 a = vertices[0];
-                const glm::vec4 b = vertices[1];
-                const glm::vec4 c = vertices[2];
-
-                const glm::vec4 n = crossproduct(b - a, c - a);
-
-                for (size_t vertex = 0; vertex < 3; ++vertex)
-                {
-                    tinyobj::index_t idx = model->shapes[shape].mesh.indices[3 * triangle + vertex];
-                    num_triangles_per_vertex[idx.vertex_index] += 1;
-                    vertex_normals[idx.vertex_index] += n;
-                }
-            }
-        }
-
-        // Computamos a média das normais acumuladas
-        std::vector<size_t> normal_indices(num_vertices, 0);
-
-        for (size_t vertex_index = 0; vertex_index < vertex_normals.size(); ++vertex_index)
-        {
-            if (num_triangles_per_vertex[vertex_index] == 0)
-                continue;
-
-            glm::vec4 n = vertex_normals[vertex_index] / (float)num_triangles_per_vertex[vertex_index];
-            n /= norm(n);
-
-            model->attrib.normals.push_back(n.x);
-            model->attrib.normals.push_back(n.y);
-            model->attrib.normals.push_back(n.z);
-
-            size_t normal_index = (model->attrib.normals.size() / 3) - 1;
-            normal_indices[vertex_index] = normal_index;
-        }
-
-        // Escrevemos os índices das normais para os vértices dos triângulos deste smoothing group
-        for (size_t shape = 0; shape < model->shapes.size(); ++shape)
-        {
-            size_t num_triangles = model->shapes[shape].mesh.num_face_vertices.size();
-
-            for (size_t triangle = 0; triangle < num_triangles; ++triangle)
-            {
-                unsigned int sgroup_tri = model->shapes[shape].mesh.smoothing_group_ids[triangle];
-
-                if (sgroup_tri != sgroup)
-                    continue;
-
-                for (size_t vertex = 0; vertex < 3; ++vertex)
-                {
-                    tinyobj::index_t idx = model->shapes[shape].mesh.indices[3 * triangle + vertex];
-                    model->shapes[shape].mesh.indices[3 * triangle + vertex].normal_index =
-                        normal_indices[idx.vertex_index];
-                }
-            }
-        }
     }
 }
 
