@@ -14,7 +14,7 @@ struct InputState
     bool g_MoveDownPressed = false;
 };
 
-namespace InputStateHandler
+namespace InputHandler
 {
     extern InputState inputState;
 

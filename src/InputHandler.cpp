@@ -1,5 +1,5 @@
-#include "inputStateHandler.h"
-namespace InputStateHandler
+#include "InputHandler.h"
+namespace InputHandler
 {
     InputState inputState;
 

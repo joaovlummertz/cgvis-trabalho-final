@@ -35,7 +35,7 @@
 
 #include "utils.h"
 #include "matrices.h"
-#include "inputStateHandler.h"
+#include "InputHandler.h"
 struct ObjModel
 {
     tinyobj::attrib_t attrib;
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
     }
 
     // Definimos a função de callback que será chamada sempre que o usuário
-    InputStateHandler::Init(window);
+    InputHandler::Init(window);
 
     // Indicamos que as chamadas OpenGL deverão renderizar nesta janela
     glfwMakeContextCurrent(window);
@@ -241,19 +241,19 @@ int main(int argc, char *argv[])
         glm::vec4 camera_view_vector;
         glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
-        if (!InputStateHandler::g_UseFirstPersonCamera)
+        if (!InputHandler::g_UseFirstPersonCamera)
         {
 
-            InputStateHandler::g_PlayerYaw = InputStateHandler::g_CameraTheta + 3.14f;
+            InputHandler::g_PlayerYaw = InputHandler::g_CameraTheta + 3.14f;
 
             // Computamos a posição da câmera utilizando coordenadas esféricas.  As
             // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
             // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
             // e ScrollCallback().
-            float r = InputStateHandler::g_CameraDistance;
-            float y = r * sin(InputStateHandler::g_CameraPhi);
-            float z = r * cos(InputStateHandler::g_CameraPhi) * cos(InputStateHandler::g_CameraTheta);
-            float x = r * cos(InputStateHandler::g_CameraPhi) * sin(InputStateHandler::g_CameraTheta);
+            float r = InputHandler::g_CameraDistance;
+            float y = r * sin(InputHandler::g_CameraPhi);
+            float z = r * cos(InputHandler::g_CameraPhi) * cos(InputHandler::g_CameraTheta);
+            float x = r * cos(InputHandler::g_CameraPhi) * sin(InputHandler::g_CameraTheta);
 
             // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
             // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -265,9 +265,9 @@ int main(int argc, char *argv[])
         {
             float eye_height = 0.6f;
             glm::vec4 forward = glm::vec4(
-                cosf(InputStateHandler::g_PlayerPitch) * sinf(InputStateHandler::g_PlayerYaw),
-                sinf(InputStateHandler::g_PlayerPitch),
-                cosf(InputStateHandler::g_PlayerPitch) * cosf(InputStateHandler::g_PlayerYaw),
+                cosf(InputHandler::g_PlayerPitch) * sinf(InputHandler::g_PlayerYaw),
+                sinf(InputHandler::g_PlayerPitch),
+                cosf(InputHandler::g_PlayerPitch) * cosf(InputHandler::g_PlayerYaw),
                 0.0f);
 
             camera_position_c = g_PlayerPosition + glm::vec4(0.0f, eye_height, 0.0f, 0.0f);
@@ -295,9 +295,9 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(g_projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
         // Desenhamos o modelo do player
-        if (!InputStateHandler::g_UseFirstPersonCamera)
+        if (!InputHandler::g_UseFirstPersonCamera)
         {
-            model = Matrix_Translate(g_PlayerPosition.x, g_PlayerPosition.y, g_PlayerPosition.z) * Matrix_Rotate_Y(InputStateHandler::g_PlayerYaw) * Matrix_Scale(0.02f, 0.02f, 0.02f);
+            model = Matrix_Translate(g_PlayerPosition.x, g_PlayerPosition.y, g_PlayerPosition.z) * Matrix_Rotate_Y(InputHandler::g_PlayerYaw) * Matrix_Scale(0.02f, 0.02f, 0.02f);
             glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             DrawVirtualObject("Gordon_Hi");
         }
@@ -457,29 +457,29 @@ void UpdatePlayer(float delta_time)
     glm::vec4 right;
     glm::vec4 up;
 
-    forward = glm::vec4(sinf(InputStateHandler::g_PlayerYaw), 0.0f, cosf(InputStateHandler::g_PlayerYaw), 0.0f);
+    forward = glm::vec4(sinf(InputHandler::g_PlayerYaw), 0.0f, cosf(InputHandler::g_PlayerYaw), 0.0f);
     right = glm::vec4(-forward.z, 0.0f, forward.x, 0.0f);
     up = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
     glm::vec4 movement = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
-    if (InputStateHandler::inputState.g_MoveForwardPressed)
+    if (InputHandler::inputState.g_MoveForwardPressed)
         movement += forward;
-    if (InputStateHandler::inputState.g_MoveBackwardPressed)
+    if (InputHandler::inputState.g_MoveBackwardPressed)
         movement -= forward;
-    if (InputStateHandler::inputState.g_MoveLeftPressed)
+    if (InputHandler::inputState.g_MoveLeftPressed)
         movement -= right;
-    if (InputStateHandler::inputState.g_MoveRightPressed)
+    if (InputHandler::inputState.g_MoveRightPressed)
         movement += right;
-    if (InputStateHandler::inputState.g_MoveUpPressed)
+    if (InputHandler::inputState.g_MoveUpPressed)
         movement += up;
-    if (InputStateHandler::inputState.g_MoveDownPressed)
+    if (InputHandler::inputState.g_MoveDownPressed)
         movement -= up;
 
     if (norm(movement) > 0.0f)
     {
         movement = movement / norm(movement);
-        g_PlayerPosition += movement * InputStateHandler::g_PlayerMoveSpeed * delta_time;
+        g_PlayerPosition += movement * InputHandler::g_PlayerMoveSpeed * delta_time;
         g_PlayerPosition.w = 1.0f;
     }
 }
