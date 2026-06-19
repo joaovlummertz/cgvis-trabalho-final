@@ -4,102 +4,21 @@ namespace InputHandler
 {
     InputState inputState;
 
-    float g_CameraTheta = 0.0f;    // Ângulo no plano ZX em relação ao eixo Z
-    float g_CameraPhi = 0.0f;      // Ângulo em relação ao eixo Y
-    float g_CameraDistance = 3.5f; // Distância da câmera para a origem
-    double g_LastCursorPosX, g_LastCursorPosY;
-    bool g_UseFirstPersonCamera = false;
-
     void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
     {
-        // Atualizamos a distância da câmera para a origem utilizando a
-        // movimentação da "rodinha", simulando um ZOOM.
-        g_CameraDistance -= 0.1f * yoffset;
-
-        const float verysmallnumber = std::numeric_limits<float>::epsilon();
-        if (g_CameraDistance < verysmallnumber)
-            g_CameraDistance = verysmallnumber;
+        inputState.g_ScrollY = yoffset;
     }
 
     void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
     {
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-        {
-            glfwGetCursorPos(window, &g_LastCursorPosX, &g_LastCursorPosY);
-            inputState.g_LeftMouseButtonPressed = true;
-        }
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-        {
-            inputState.g_LeftMouseButtonPressed = false;
-        }
-        if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-        {
-            glfwGetCursorPos(window, &g_LastCursorPosX, &g_LastCursorPosY);
-            inputState.g_RightMouseButtonPressed = true;
-        }
-        if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
-        {
-            inputState.g_RightMouseButtonPressed = false;
-        }
+        // Not tracking button states for now
     }
 
     void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
     {
-        // Abaixo executamos o seguinte: caso o botão esquerdo do mouse esteja
-        // pressionado, computamos quanto que o mouse se movimento desde o último
-        // instante de tempo, e usamos esta movimentação para atualizar os
-        // parâmetros que definem a posição da câmera dentro da cena virtual.
-        // Assim, temos que o usuário consegue controlar a câmera.
-
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-        float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
-
-        if (!g_UseFirstPersonCamera)
-        {
-
-            // Atualizamos parâmetros da câmera com os deslocamentos
-            g_CameraTheta -= 0.01f * dx;
-            g_CameraPhi += 0.01f * dy;
-
-            // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
-            float phimax = 3.141592f / 2;
-            float phimin = -phimax;
-
-            if (g_CameraPhi > phimax)
-                g_CameraPhi = phimax;
-
-            if (g_CameraPhi < phimin)
-                g_CameraPhi = phimin;
-        }
-        else
-        {
-            Player::g_PlayerYaw -= 0.01f * dx;
-            Player::g_PlayerPitch -= 0.01f * dy;
-
-            float pitchmax = 3.14f / 2.0f - 0.01f;
-            float pitchmin = -pitchmax;
-
-            if (Player::g_PlayerPitch > pitchmax)
-                Player::g_PlayerPitch = pitchmax;
-
-            if (Player::g_PlayerPitch < pitchmin)
-                Player::g_PlayerPitch = pitchmin;
-        }
-
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
-        g_LastCursorPosX = xpos;
-        g_LastCursorPosY = ypos;
-
-        if (inputState.g_RightMouseButtonPressed)
-        {
-
-            // Atualizamos as variáveis globais para armazenar a posição atual do
-            // cursor como sendo a última posição conhecida do cursor.
-            g_LastCursorPosX = xpos;
-            g_LastCursorPosY = ypos;
-        }
+        // Store current mouse position
+        inputState.g_MouseX = xpos;
+        inputState.g_MouseY = ypos;
     }
 
     void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
@@ -128,25 +47,18 @@ namespace InputHandler
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
             glfwSetWindowShouldClose(window, GL_TRUE);
 
-        // Se o usuário apertar a tecla C, alternamos entre a câmera padrão e a câmera em primeira pessoa.
+        // Flag when C is pressed
         if (key == GLFW_KEY_C && action == GLFW_PRESS)
         {
-            g_UseFirstPersonCamera = !g_UseFirstPersonCamera;
+            inputState.g_CKeyPressed = true;
         }
 
         if (key == GLFW_KEY_H && action == GLFW_PRESS)
         {
             inputState.g_ShowHitbox = !inputState.g_ShowHitbox;
         }
-
-        // // Se o usuário apertar a tecla R, recarregamos os shaders dos arquivos "shader_fragment.glsl" e "shader_vertex.glsl".
-        // if (key == GLFW_KEY_R && action == GLFW_PRESS)
-        // {
-        //     LoadShadersFromFiles();
-        //     fprintf(stdout, "Shaders recarregados!\n");
-        //     fflush(stdout);
-        // }
     }
+
     void Init(GLFWwindow *window)
     {
         std::cout << "Initializing inputStateHandler";

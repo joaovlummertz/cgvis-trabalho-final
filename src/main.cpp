@@ -95,11 +95,11 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *, const std::string &basepath)
 void LoadShadersFromFiles();                                                      // Carrega os shaders de vértice e fragmento, criando um programa de GPU
 GLuint LoadTextureImage(const char *filename);                                    // Função que carrega imagens de textura
 void DrawVirtualObject(const char *object_name);                                  // Desenha um objeto armazenado em g_VirtualScene
-GLuint LoadShader_Vertex(const char *filename);                              // Carrega um vertex shader
-GLuint LoadShader_Fragment(const char *filename);                            // Carrega um fragment shader
-void LoadShader(const char *filename, GLuint shader_id);                     // Função utilizada pelas duas acima
-GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id); // Cria um programa de GPU
-void PrintObjModelInfo(ObjModel *);                                          // Função para debugging
+GLuint LoadShader_Vertex(const char *filename);                                   // Carrega um vertex shader
+GLuint LoadShader_Fragment(const char *filename);                                 // Carrega um fragment shader
+void LoadShader(const char *filename, GLuint shader_id);                          // Função utilizada pelas duas acima
+GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id);      // Cria um programa de GPU
+void PrintObjModelInfo(ObjModel *);                                               // Função para debugging
 
 void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
 void ErrorCallback(int error, const char *description);
@@ -118,6 +118,18 @@ struct SceneObject
     GLuint texture_id;
 };
 
+// Abaixo definimos variáveis globais utilizadas em várias funções do código.
+
+// Camera state
+float g_CameraTheta = 0.0f;
+float g_CameraPhi = 0.0f;
+float g_CameraDistance = 3.5f;
+bool g_UseFirstPersonCamera = false;
+
+// Mouse tracking for camera updates
+double g_LastMouseX = 0.0;
+double g_LastMouseY = 0.0;
+
 std::map<std::string, SceneObject> g_VirtualScene;
 
 std::stack<glm::mat4> g_MatrixStack; // usar mais
@@ -132,6 +144,9 @@ GLint g_projection_uniform;
 GLint g_object_id_uniform;
 GLint g_bbox_min_uniform;
 GLint g_bbox_max_uniform;
+
+double g_LastCursorPosX;
+double g_LastCursorPosY;
 
 int main(int argc, char *argv[])
 {
@@ -167,7 +182,7 @@ int main(int argc, char *argv[])
         std::exit(EXIT_FAILURE);
     }
 
-    // Definimos a função de callback que será chamada sempre que o usuário
+    // pega informações de inputs do usuário
     InputHandler::Init(window);
 
     // Indicamos que as chamadas OpenGL deverão renderizar nesta janela
@@ -206,7 +221,7 @@ int main(int argc, char *argv[])
     // Habilitamos o Z-buffer. Veja slides 104-116 do documento Aula_09_Projecoes.pdf.
     glEnable(GL_DEPTH_TEST);
 
-    // Habilitamos o Backface Culling. Veja slides 8-13 do documento Aula_02_Fundamentos_Matematicos.pdf, slides 23-34 do documento Aula_13_Clipping_and_Culling.pdf e slides 112-123 do documento Aula_14_Laboratorio_3_Revisao.pdf.
+    // Habilitamos o Backface Culling.
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
@@ -220,6 +235,59 @@ int main(int argc, char *argv[])
         previous_time = current_time;
 
         Player::UpdatePlayer(delta_time);
+
+        // Process camera input
+        // Handle C key toggle for first-person camera
+        if (InputHandler::inputState.g_CKeyPressed)
+        {
+            g_UseFirstPersonCamera = !g_UseFirstPersonCamera;
+            InputHandler::inputState.g_CKeyPressed = false; // Reset flag
+        }
+
+        // Compute mouse movement delta
+        double mouseX = InputHandler::inputState.g_MouseX;
+        double mouseY = InputHandler::inputState.g_MouseY;
+        double dx = mouseX - g_LastMouseX;
+        double dy = mouseY - g_LastMouseY;
+        g_LastMouseX = mouseX;
+        g_LastMouseY = mouseY;
+
+        // Update camera angles based on mouse movement
+        if (!g_UseFirstPersonCamera)
+        {
+            Player::g_PlayerYaw = g_CameraTheta + 3.14f; // Player faces opposite to camera in third-person
+            g_CameraTheta -= 0.01f * dx;
+            g_CameraPhi += 0.01f * dy;
+
+            // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
+            float phimax = 3.141592f / 2;
+            float phimin = -phimax;
+
+            if (g_CameraPhi > phimax)
+                g_CameraPhi = phimax;
+            if (g_CameraPhi < phimin)
+                g_CameraPhi = phimin;
+        }
+        else
+        {
+            Player::g_PlayerYaw -= 0.01f * dx;
+            Player::g_PlayerPitch -= 0.01f * dy;
+
+            float pitchmax = 3.14f / 2.0f - 0.01f;
+            float pitchmin = -pitchmax;
+
+            if (Player::g_PlayerPitch > pitchmax)
+                Player::g_PlayerPitch = pitchmax;
+            if (Player::g_PlayerPitch < pitchmin)
+                Player::g_PlayerPitch = pitchmin;
+        }
+
+        // Handle scroll for camera zoom
+        g_CameraDistance -= 0.1f * InputHandler::inputState.g_ScrollY;
+        const float verysmallnumber = std::numeric_limits<float>::epsilon();
+        if (g_CameraDistance < verysmallnumber)
+            g_CameraDistance = verysmallnumber;
+        InputHandler::inputState.g_ScrollY = 0.0; // Reset scroll
 
         // Aqui executamos as operações de renderização
 
@@ -241,19 +309,16 @@ int main(int argc, char *argv[])
         glm::vec4 camera_view_vector;
         glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
-        if (!InputHandler::g_UseFirstPersonCamera)
+        if (!g_UseFirstPersonCamera)
         {
-
-            Player::g_PlayerYaw = InputHandler::g_CameraTheta + 3.14f;
-
             // Computamos a posição da câmera utilizando coordenadas esféricas.  As
             // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
             // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
             // e ScrollCallback().
-            float r = InputHandler::g_CameraDistance;
-            float y = r * sin(InputHandler::g_CameraPhi);
-            float z = r * cos(InputHandler::g_CameraPhi) * cos(InputHandler::g_CameraTheta);
-            float x = r * cos(InputHandler::g_CameraPhi) * sin(InputHandler::g_CameraTheta);
+            float r = g_CameraDistance;
+            float y = r * sin(g_CameraPhi);
+            float z = r * cos(g_CameraPhi) * cos(g_CameraTheta);
+            float x = r * cos(g_CameraPhi) * sin(g_CameraTheta);
 
             // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
             // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -264,7 +329,11 @@ int main(int argc, char *argv[])
         else
         {
             float eye_height = 0.6f;
-            glm::vec4 forward = Player::GetForwardVector();
+            glm::vec4 forward = glm::vec4(
+                cosf(Player::g_PlayerPitch) * sinf(Player::g_PlayerYaw),
+                sinf(Player::g_PlayerPitch),
+                cosf(Player::g_PlayerPitch) * cosf(Player::g_PlayerYaw),
+                0.0f);
 
             camera_position_c = Player::g_PlayerPosition + glm::vec4(0.0f, eye_height, 0.0f, 0.0f);
             camera_view_vector = forward;
@@ -291,7 +360,7 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(g_projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
         // Desenhamos o modelo do player
-        if (!InputHandler::g_UseFirstPersonCamera)
+        if (!g_UseFirstPersonCamera)
         {
             model = Matrix_Translate(Player::g_PlayerPosition.x, Player::g_PlayerPosition.y, Player::g_PlayerPosition.z) * Matrix_Rotate_Y(Player::g_PlayerYaw) * Matrix_Scale(0.02f, 0.02f, 0.02f);
             glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
@@ -313,11 +382,6 @@ int main(int argc, char *argv[])
         // tudo que foi renderizado pelas funções acima.
         // Veja o link: https://en.wikipedia.org/w/index.php?title=Multiple_buffering&oldid=793452829#Double_buffering_in_computer_graphics
         glfwSwapBuffers(window);
-
-        // Verificamos com o sistema operacional se houve alguma interação do
-        // usuário (teclado, mouse, ...). Caso positivo, as funções de callback
-        // definidas anteriormente usando glfwSet*Callback() serão chamadas
-        // pela biblioteca GLFW.
         glfwPollEvents();
     }
 
