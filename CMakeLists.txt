@@ -13,6 +13,7 @@ set(SOURCES
   src/stb_image.cpp
   src/glad.c
   src/InputHandler.cpp
+  src/Player.cpp
   src/PlayerHitbox.cpp
 )
 

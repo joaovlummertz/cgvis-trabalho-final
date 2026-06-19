@@ -36,7 +36,9 @@
 #include "utils.h"
 #include "matrices.h"
 #include "InputHandler.h"
+#include "Player.h"
 #include "PlayerHitbox.h"
+using Player::g_PlayerPosition;
 struct ObjModel
 {
     tinyobj::attrib_t attrib;
@@ -93,7 +95,6 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *, const std::string &basepath)
 void LoadShadersFromFiles();                                                      // Carrega os shaders de vértice e fragmento, criando um programa de GPU
 GLuint LoadTextureImage(const char *filename);                                    // Função que carrega imagens de textura
 void DrawVirtualObject(const char *object_name);                                  // Desenha um objeto armazenado em g_VirtualScene
-void UpdatePlayer(float delta_time);
 GLuint LoadShader_Vertex(const char *filename);                              // Carrega um vertex shader
 GLuint LoadShader_Fragment(const char *filename);                            // Carrega um fragment shader
 void LoadShader(const char *filename, GLuint shader_id);                     // Função utilizada pelas duas acima
@@ -116,10 +117,6 @@ struct SceneObject
     glm::vec3 bbox_max;
     GLuint texture_id;
 };
-
-// Abaixo definimos variáveis globais utilizadas em várias funções do código.
-
-glm::vec4 g_PlayerPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 std::map<std::string, SceneObject> g_VirtualScene;
 
@@ -222,7 +219,7 @@ int main(int argc, char *argv[])
         float delta_time = current_time - previous_time;
         previous_time = current_time;
 
-        UpdatePlayer(delta_time);
+        Player::UpdatePlayer(delta_time);
 
         // Aqui executamos as operações de renderização
 
@@ -247,7 +244,7 @@ int main(int argc, char *argv[])
         if (!InputHandler::g_UseFirstPersonCamera)
         {
 
-            InputHandler::g_PlayerYaw = InputHandler::g_CameraTheta + 3.14f;
+            Player::g_PlayerYaw = InputHandler::g_CameraTheta + 3.14f;
 
             // Computamos a posição da câmera utilizando coordenadas esféricas.  As
             // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
@@ -267,13 +264,9 @@ int main(int argc, char *argv[])
         else
         {
             float eye_height = 0.6f;
-            glm::vec4 forward = glm::vec4(
-                cosf(InputHandler::g_PlayerPitch) * sinf(InputHandler::g_PlayerYaw),
-                sinf(InputHandler::g_PlayerPitch),
-                cosf(InputHandler::g_PlayerPitch) * cosf(InputHandler::g_PlayerYaw),
-                0.0f);
+            glm::vec4 forward = Player::GetForwardVector();
 
-            camera_position_c = g_PlayerPosition + glm::vec4(0.0f, eye_height, 0.0f, 0.0f);
+            camera_position_c = Player::g_PlayerPosition + glm::vec4(0.0f, eye_height, 0.0f, 0.0f);
             camera_view_vector = forward;
             camera_lookat_l = camera_position_c + camera_view_vector;
         }
@@ -300,7 +293,7 @@ int main(int argc, char *argv[])
         // Desenhamos o modelo do player
         if (!InputHandler::g_UseFirstPersonCamera)
         {
-            model = Matrix_Translate(g_PlayerPosition.x, g_PlayerPosition.y, g_PlayerPosition.z) * Matrix_Rotate_Y(InputHandler::g_PlayerYaw) * Matrix_Scale(0.02f, 0.02f, 0.02f);
+            model = Matrix_Translate(Player::g_PlayerPosition.x, Player::g_PlayerPosition.y, Player::g_PlayerPosition.z) * Matrix_Rotate_Y(Player::g_PlayerYaw) * Matrix_Scale(0.02f, 0.02f, 0.02f);
             glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             DrawVirtualObject("Gordon_Hi");
         }
@@ -453,39 +446,6 @@ void PopMatrix(glm::mat4 &M)
     {
         M = g_MatrixStack.top();
         g_MatrixStack.pop();
-    }
-}
-
-void UpdatePlayer(float delta_time)
-{
-    glm::vec4 forward;
-    glm::vec4 right;
-    glm::vec4 up;
-
-    forward = glm::vec4(sinf(InputHandler::g_PlayerYaw), 0.0f, cosf(InputHandler::g_PlayerYaw), 0.0f);
-    right = glm::vec4(-forward.z, 0.0f, forward.x, 0.0f);
-    up = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-
-    glm::vec4 movement = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-
-    if (InputHandler::inputState.g_MoveForwardPressed)
-        movement += forward;
-    if (InputHandler::inputState.g_MoveBackwardPressed)
-        movement -= forward;
-    if (InputHandler::inputState.g_MoveLeftPressed)
-        movement -= right;
-    if (InputHandler::inputState.g_MoveRightPressed)
-        movement += right;
-    if (InputHandler::inputState.g_MoveUpPressed)
-        movement += up;
-    if (InputHandler::inputState.g_MoveDownPressed)
-        movement -= up;
-
-    if (norm(movement) > 0.0f)
-    {
-        movement = movement / norm(movement);
-        g_PlayerPosition += movement * InputHandler::g_PlayerMoveSpeed * delta_time;
-        g_PlayerPosition.w = 1.0f;
     }
 }
 

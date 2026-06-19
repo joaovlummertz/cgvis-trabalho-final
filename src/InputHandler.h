@@ -25,9 +25,6 @@ namespace InputHandler
     extern double g_LastCursorPosX;
     extern double g_LastCursorPosY;
     extern bool g_UseFirstPersonCamera;
-    extern float g_PlayerYaw;
-    extern float g_PlayerPitch;
-    extern float g_PlayerMoveSpeed;
 
     void Init(GLFWwindow *window);
 }

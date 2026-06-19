@@ -1,4 +1,5 @@
 #include "InputHandler.h"
+#include "Player.h"
 namespace InputHandler
 {
     InputState inputState;
@@ -8,9 +9,6 @@ namespace InputHandler
     float g_CameraDistance = 3.5f; // Distância da câmera para a origem
     double g_LastCursorPosX, g_LastCursorPosY;
     bool g_UseFirstPersonCamera = false;
-    float g_PlayerYaw = 0.0f;
-    float g_PlayerPitch = 0.0f;
-    float g_PlayerMoveSpeed = 15.0f;
 
     void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
     {
@@ -76,17 +74,17 @@ namespace InputHandler
         }
         else
         {
-            g_PlayerYaw -= 0.01f * dx;
-            g_PlayerPitch -= 0.01f * dy;
+            Player::g_PlayerYaw -= 0.01f * dx;
+            Player::g_PlayerPitch -= 0.01f * dy;
 
             float pitchmax = 3.14f / 2.0f - 0.01f;
             float pitchmin = -pitchmax;
 
-            if (g_PlayerPitch > pitchmax)
-                g_PlayerPitch = pitchmax;
+            if (Player::g_PlayerPitch > pitchmax)
+                Player::g_PlayerPitch = pitchmax;
 
-            if (g_PlayerPitch < pitchmin)
-                g_PlayerPitch = pitchmin;
+            if (Player::g_PlayerPitch < pitchmin)
+                Player::g_PlayerPitch = pitchmin;
         }
 
         // Atualizamos as variáveis globais para armazenar a posição atual do

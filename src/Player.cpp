@@ -1,0 +1,55 @@
+#include "Player.h"
+
+#include <glm/gtx/norm.hpp>
+
+#include "InputHandler.h"
+
+namespace Player
+{
+glm::vec4 g_PlayerPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+float g_PlayerMoveSpeed = 15.0f;
+float g_PlayerYaw = 0.0f;
+float g_PlayerPitch = 0.0f;
+
+glm::vec4 GetForwardVector()
+{
+    return glm::vec4(
+        cosf(g_PlayerPitch) * sinf(g_PlayerYaw),
+        sinf(g_PlayerPitch),
+        cosf(g_PlayerPitch) * cosf(g_PlayerYaw),
+        0.0f);
+}
+
+void UpdatePlayer(float delta_time)
+{
+    glm::vec4 forward;
+    glm::vec4 right;
+    glm::vec4 up;
+
+    forward = glm::vec4(sinf(g_PlayerYaw), 0.0f, cosf(g_PlayerYaw), 0.0f);
+    right = glm::vec4(-forward.z, 0.0f, forward.x, 0.0f);
+    up = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+
+    glm::vec4 movement = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+
+    if (InputHandler::inputState.g_MoveForwardPressed)
+        movement += forward;
+    if (InputHandler::inputState.g_MoveBackwardPressed)
+        movement -= forward;
+    if (InputHandler::inputState.g_MoveLeftPressed)
+        movement -= right;
+    if (InputHandler::inputState.g_MoveRightPressed)
+        movement += right;
+    if (InputHandler::inputState.g_MoveUpPressed)
+        movement += up;
+    if (InputHandler::inputState.g_MoveDownPressed)
+        movement -= up;
+
+    if (glm::length2(movement) > 0.0f)
+    {
+        movement = movement / glm::length(movement);
+        g_PlayerPosition += movement * g_PlayerMoveSpeed * delta_time;
+        g_PlayerPosition.w = 1.0f;
+    }
+}
+} // namespace Player

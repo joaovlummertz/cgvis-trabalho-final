@@ -90,7 +90,7 @@ void DrawPlayerHitbox(glm::mat4 view, glm::mat4 projection)
         return;
 
     glm::mat4 model(1.0f);
-    model = glm::translate(model, glm::vec3(g_PlayerPosition.x, g_PlayerPosition.y, g_PlayerPosition.z));
+    model = glm::translate(model, glm::vec3(Player::g_PlayerPosition.x, Player::g_PlayerPosition.y, Player::g_PlayerPosition.z));
 
     glUseProgram(g_DebugGpuProgramID);
     glUniformMatrix4fv(g_debug_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
