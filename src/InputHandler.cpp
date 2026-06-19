@@ -136,6 +136,11 @@ namespace InputHandler
             g_UseFirstPersonCamera = !g_UseFirstPersonCamera;
         }
 
+        if (key == GLFW_KEY_H && action == GLFW_PRESS)
+        {
+            inputState.g_ShowHitbox = !inputState.g_ShowHitbox;
+        }
+
         // // Se o usuário apertar a tecla R, recarregamos os shaders dos arquivos "shader_fragment.glsl" e "shader_vertex.glsl".
         // if (key == GLFW_KEY_R && action == GLFW_PRESS)
         // {

@@ -36,6 +36,7 @@
 #include "utils.h"
 #include "matrices.h"
 #include "InputHandler.h"
+#include "PlayerHitbox.h"
 struct ObjModel
 {
     tinyobj::attrib_t attrib;
@@ -203,6 +204,8 @@ int main(int argc, char *argv[])
     ObjModel mapintromodel("../../assets/OBJ/maps/intro.obj");
     BuildTrianglesAndAddToVirtualScene(&mapintromodel, "../../assets/textures/");
 
+    InitPlayerHitbox();
+
     // Habilitamos o Z-buffer. Veja slides 104-116 do documento Aula_09_Projecoes.pdf.
     glEnable(GL_DEPTH_TEST);
 
@@ -307,6 +310,8 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
 
         DrawVirtualObject("Brush"); // O arquivo OBJ do mapa é definido por uma coleção de objetos chamados 'Brush'. Isso é assim pois é a maneira como a ferramente J.A.C.K exporta os mapas.
+
+        DrawPlayerHitbox(view, projection);
 
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário

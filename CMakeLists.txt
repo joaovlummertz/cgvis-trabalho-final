@@ -13,6 +13,7 @@ set(SOURCES
   src/stb_image.cpp
   src/glad.c
   src/InputHandler.cpp
+  src/PlayerHitbox.cpp
 )
 
 cmake_minimum_required(VERSION 3.5.0)
