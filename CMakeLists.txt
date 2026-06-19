@@ -15,6 +15,8 @@ set(SOURCES
   src/InputHandler.cpp
   src/Player.cpp
   src/PlayerHitbox.cpp
+  src/Camera.cpp
+
 )
 
 cmake_minimum_required(VERSION 3.5.0)

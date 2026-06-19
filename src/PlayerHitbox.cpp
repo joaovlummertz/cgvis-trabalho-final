@@ -110,11 +110,11 @@ void InitPlayerHitbox()
 
 void DrawPlayerHitbox(glm::mat4 view, glm::mat4 projection)
 {
-    if (InputHandler::inputState.g_CKeyPressed || !InputHandler::inputState.g_ShowHitbox)
+    if (InputHandler::inputState.g_UseFirstPersonCamera || !InputHandler::inputState.g_ShowHitbox)
         return;
 
     glm::mat4 model(1.0f);
-    model = glm::translate(model, glm::vec3(Player::g_PlayerPosition.x, Player::g_PlayerPosition.y, Player::g_PlayerPosition.z));
+    model = glm::translate(model, glm::vec3(Player::playerState.g_PlayerPosition.x, Player::playerState.g_PlayerPosition.y, Player::playerState.g_PlayerPosition.z));
 
     glUseProgram(g_DebugGpuProgramID);
     glUniformMatrix4fv(g_debug_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
