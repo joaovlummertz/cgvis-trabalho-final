@@ -18,31 +18,31 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id);
 
 namespace
 {
-GLuint g_DebugGpuProgramID = 0;
-GLint g_debug_model_uniform = -1;
-GLint g_debug_view_uniform = -1;
-GLint g_debug_projection_uniform = -1;
-GLuint g_PlayerHitboxVAO = 0;
-GLuint g_PlayerHitboxVBOPositions = 0;
-GLuint g_PlayerHitboxEBO = 0;
+    GLuint g_DebugGpuProgramID = 0;
+    GLint g_debug_model_uniform = -1;
+    GLint g_debug_view_uniform = -1;
+    GLint g_debug_projection_uniform = -1;
+    GLuint g_PlayerHitboxVAO = 0;
+    GLuint g_PlayerHitboxVBOPositions = 0;
+    GLuint g_PlayerHitboxEBO = 0;
 
-const float g_PlayerHitboxRadius = 0.25f;
-const float g_PlayerHitboxHeight = 1.5f;
+    const float g_PlayerHitboxRadius = 0.25f;
+    const float g_PlayerHitboxHeight = 1.5f;
 
-void LoadDebugShadersFromFiles()
-{
-    GLuint vertex_shader_id = LoadShader_Vertex("../../src/shader_debug_vertex.glsl");
-    GLuint fragment_shader_id = LoadShader_Fragment("../../src/shader_debug_fragment.glsl");
+    void LoadDebugShadersFromFiles()
+    {
+        GLuint vertex_shader_id = LoadShader_Vertex("../../src/shader_debug_vertex.glsl");
+        GLuint fragment_shader_id = LoadShader_Fragment("../../src/shader_debug_fragment.glsl");
 
-    if (g_DebugGpuProgramID != 0)
-        glDeleteProgram(g_DebugGpuProgramID);
+        if (g_DebugGpuProgramID != 0)
+            glDeleteProgram(g_DebugGpuProgramID);
 
-    g_DebugGpuProgramID = CreateGpuProgram(vertex_shader_id, fragment_shader_id);
+        g_DebugGpuProgramID = CreateGpuProgram(vertex_shader_id, fragment_shader_id);
 
-    g_debug_model_uniform = glGetUniformLocation(g_DebugGpuProgramID, "model");
-    g_debug_view_uniform = glGetUniformLocation(g_DebugGpuProgramID, "view");
-    g_debug_projection_uniform = glGetUniformLocation(g_DebugGpuProgramID, "projection");
-}
+        g_debug_model_uniform = glGetUniformLocation(g_DebugGpuProgramID, "model");
+        g_debug_view_uniform = glGetUniformLocation(g_DebugGpuProgramID, "view");
+        g_debug_projection_uniform = glGetUniformLocation(g_DebugGpuProgramID, "projection");
+    }
 } // namespace
 
 void InitPlayerHitbox()
@@ -51,14 +51,38 @@ void InitPlayerHitbox()
     const float half_depth = g_PlayerHitboxRadius;
 
     const GLfloat positions[] = {
-        -half_width, 0.0f, -half_depth, 1.0f,
-         half_width, 0.0f, -half_depth, 1.0f,
-         half_width, 0.0f,  half_depth, 1.0f,
-        -half_width, 0.0f,  half_depth, 1.0f,
-        -half_width, g_PlayerHitboxHeight, -half_depth, 1.0f,
-         half_width, g_PlayerHitboxHeight, -half_depth, 1.0f,
-         half_width, g_PlayerHitboxHeight,  half_depth, 1.0f,
-        -half_width, g_PlayerHitboxHeight,  half_depth, 1.0f,
+        -half_width,
+        0.0f,
+        -half_depth,
+        1.0f,
+        half_width,
+        0.0f,
+        -half_depth,
+        1.0f,
+        half_width,
+        0.0f,
+        half_depth,
+        1.0f,
+        -half_width,
+        0.0f,
+        half_depth,
+        1.0f,
+        -half_width,
+        g_PlayerHitboxHeight,
+        -half_depth,
+        1.0f,
+        half_width,
+        g_PlayerHitboxHeight,
+        -half_depth,
+        1.0f,
+        half_width,
+        g_PlayerHitboxHeight,
+        half_depth,
+        1.0f,
+        -half_width,
+        g_PlayerHitboxHeight,
+        half_depth,
+        1.0f,
     };
 
     const GLuint indices[] = {
@@ -86,7 +110,7 @@ void InitPlayerHitbox()
 
 void DrawPlayerHitbox(glm::mat4 view, glm::mat4 projection)
 {
-    if (InputHandler::g_UseFirstPersonCamera || !InputHandler::inputState.g_ShowHitbox)
+    if (InputHandler::inputState.g_CKeyPressed || !InputHandler::inputState.g_ShowHitbox)
         return;
 
     glm::mat4 model(1.0f);
