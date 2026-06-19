@@ -35,10 +35,10 @@
 
 #include "utils.h"
 #include "matrices.h"
-#include "InputHandler.h"
 #include "Player.h"
 #include "PlayerHitbox.h"
-using Player::g_PlayerPosition;
+#include "PlayerHitbox.h"
+#include "Camera.h"
 struct ObjModel
 {
     tinyobj::attrib_t attrib;
@@ -120,12 +120,6 @@ struct SceneObject
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
-// Camera state
-float g_CameraTheta = 0.0f;
-float g_CameraPhi = 0.0f;
-float g_CameraDistance = 3.5f;
-bool g_UseFirstPersonCamera = false;
-
 // Mouse tracking for camera updates
 double g_LastMouseX = 0.0;
 double g_LastMouseY = 0.0;
@@ -144,9 +138,6 @@ GLint g_projection_uniform;
 GLint g_object_id_uniform;
 GLint g_bbox_min_uniform;
 GLint g_bbox_max_uniform;
-
-double g_LastCursorPosX;
-double g_LastCursorPosY;
 
 int main(int argc, char *argv[])
 {
@@ -218,6 +209,8 @@ int main(int argc, char *argv[])
 
     InitPlayerHitbox();
 
+    Camera Camera;
+
     // Habilitamos o Z-buffer. Veja slides 104-116 do documento Aula_09_Projecoes.pdf.
     glEnable(GL_DEPTH_TEST);
 
@@ -236,14 +229,6 @@ int main(int argc, char *argv[])
 
         Player::UpdatePlayer(delta_time);
 
-        // Process camera input
-        // Handle C key toggle for first-person camera
-        if (InputHandler::inputState.g_CKeyPressed)
-        {
-            g_UseFirstPersonCamera = !g_UseFirstPersonCamera;
-            InputHandler::inputState.g_CKeyPressed = false; // Reset flag
-        }
-
         // Compute mouse movement delta
         double mouseX = InputHandler::inputState.g_MouseX;
         double mouseY = InputHandler::inputState.g_MouseY;
@@ -253,41 +238,8 @@ int main(int argc, char *argv[])
         g_LastMouseY = mouseY;
 
         // Update camera angles based on mouse movement
-        if (!g_UseFirstPersonCamera)
-        {
-            Player::g_PlayerYaw = g_CameraTheta + 3.14f; // Player faces opposite to camera in third-person
-            g_CameraTheta -= 0.01f * dx;
-            g_CameraPhi += 0.01f * dy;
 
-            // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
-            float phimax = 3.141592f / 2;
-            float phimin = -phimax;
-
-            if (g_CameraPhi > phimax)
-                g_CameraPhi = phimax;
-            if (g_CameraPhi < phimin)
-                g_CameraPhi = phimin;
-        }
-        else
-        {
-            Player::g_PlayerYaw -= 0.01f * dx;
-            Player::g_PlayerPitch -= 0.01f * dy;
-
-            float pitchmax = 3.14f / 2.0f - 0.01f;
-            float pitchmin = -pitchmax;
-
-            if (Player::g_PlayerPitch > pitchmax)
-                Player::g_PlayerPitch = pitchmax;
-            if (Player::g_PlayerPitch < pitchmin)
-                Player::g_PlayerPitch = pitchmin;
-        }
-
-        // Handle scroll for camera zoom
-        g_CameraDistance -= 0.1f * InputHandler::inputState.g_ScrollY;
-        const float verysmallnumber = std::numeric_limits<float>::epsilon();
-        if (g_CameraDistance < verysmallnumber)
-            g_CameraDistance = verysmallnumber;
-        InputHandler::inputState.g_ScrollY = 0.0; // Reset scroll
+        Camera.Update(InputHandler::inputState, Player::playerState, dx, dy);
 
         // Aqui executamos as operações de renderização
 
@@ -304,43 +256,7 @@ int main(int argc, char *argv[])
         // os shaders de vértice e fragmentos).
         glUseProgram(g_GpuProgramID);
 
-        glm::vec4 camera_position_c;
-        glm::vec4 camera_lookat_l;
-        glm::vec4 camera_view_vector;
-        glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
-
-        if (!g_UseFirstPersonCamera)
-        {
-            // Computamos a posição da câmera utilizando coordenadas esféricas.  As
-            // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
-            // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
-            // e ScrollCallback().
-            float r = g_CameraDistance;
-            float y = r * sin(g_CameraPhi);
-            float z = r * cos(g_CameraPhi) * cos(g_CameraTheta);
-            float x = r * cos(g_CameraPhi) * sin(g_CameraTheta);
-
-            // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
-            // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-            camera_position_c = glm::vec4(x, y, z, 0.0f) + g_PlayerPosition;        // Ponto "c", centro da câmera
-            camera_lookat_l = g_PlayerPosition + glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-            camera_view_vector = camera_lookat_l - camera_position_c;               // Vetor "view", sentido para onde a câmera está virada
-        }
-        else
-        {
-            float eye_height = 0.6f;
-            glm::vec4 forward = glm::vec4(
-                cosf(Player::g_PlayerPitch) * sinf(Player::g_PlayerYaw),
-                sinf(Player::g_PlayerPitch),
-                cosf(Player::g_PlayerPitch) * cosf(Player::g_PlayerYaw),
-                0.0f);
-
-            camera_position_c = Player::g_PlayerPosition + glm::vec4(0.0f, eye_height, 0.0f, 0.0f);
-            camera_view_vector = forward;
-            camera_lookat_l = camera_position_c + camera_view_vector;
-        }
-
-        glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+        glm::mat4 view = Matrix_Camera_View(Camera.camera_position_c, Camera.camera_view_vector, Camera.camera_up_vector);
         glm::mat4 projection;
 
         float nearplane = -0.1f;     // Posição do "near plane"
@@ -360,9 +276,9 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(g_projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
 
         // Desenhamos o modelo do player
-        if (!g_UseFirstPersonCamera)
+        if (!InputHandler::inputState.g_UseFirstPersonCamera)
         {
-            model = Matrix_Translate(Player::g_PlayerPosition.x, Player::g_PlayerPosition.y, Player::g_PlayerPosition.z) * Matrix_Rotate_Y(Player::g_PlayerYaw) * Matrix_Scale(0.02f, 0.02f, 0.02f);
+            model = Matrix_Translate(Player::playerState.g_PlayerPosition.x, Player::playerState.g_PlayerPosition.y, Player::playerState.g_PlayerPosition.z) * Matrix_Rotate_Y(Player::playerState.g_PlayerYaw) * Matrix_Scale(0.02f, 0.02f, 0.02f);
             glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             DrawVirtualObject("Gordon_Hi");
         }

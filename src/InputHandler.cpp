@@ -47,10 +47,10 @@ namespace InputHandler
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
             glfwSetWindowShouldClose(window, GL_TRUE);
 
-        // Flag when C is pressed
+        // Toggle between first-person and third-person cameras
         if (key == GLFW_KEY_C && action == GLFW_PRESS)
         {
-            inputState.g_CKeyPressed = true;
+            inputState.g_UseFirstPersonCamera = !inputState.g_UseFirstPersonCamera;
         }
 
         if (key == GLFW_KEY_H && action == GLFW_PRESS)

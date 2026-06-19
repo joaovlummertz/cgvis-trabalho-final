@@ -11,14 +11,14 @@ struct InputState
     bool g_MoveUpPressed = false;
     bool g_MoveDownPressed = false;
     bool g_ShowHitbox = false;
-    bool g_CKeyPressed = false;
+    bool g_UseFirstPersonCamera = false;
     double g_MouseX = 0.0;
     double g_MouseY = 0.0;
     double g_ScrollY = 0.0;
 };
-
 namespace InputHandler
 {
+
     extern InputState inputState;
     void Init(GLFWwindow *window);
 }
