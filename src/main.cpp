@@ -116,6 +116,7 @@ struct SceneObject
     glm::vec3 bbox_min;            // Axis-Aligned Bounding Box do objeto
     glm::vec3 bbox_max;
     GLuint texture_id;
+    std::vector<glm::vec3> vertices; // Added for collision detection on CPU
 };
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
@@ -461,6 +462,7 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model, const std::string &base
                 tex_id = LoadTextureImage((basepath + texname).c_str());
         }
 
+        std::vector<glm::vec3> shape_vertices;
         for (size_t triangle = 0; triangle < num_triangles; ++triangle)
         {
             assert(model->shapes[shape].mesh.num_face_vertices[triangle] == 3);
@@ -479,6 +481,8 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model, const std::string &base
                 model_coefficients.push_back(vy);   // Y
                 model_coefficients.push_back(vz);   // Z
                 model_coefficients.push_back(1.0f); // W
+
+                shape_vertices.push_back(glm::vec3(vx, vy, vz));
 
                 bbox_min.x = std::min(bbox_min.x, vx);
                 bbox_min.y = std::min(bbox_min.y, vy);
@@ -520,6 +524,7 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model, const std::string &base
 
         theobject.bbox_min = bbox_min;
         theobject.bbox_max = bbox_max;
+        theobject.vertices = shape_vertices;
 
         g_VirtualScene[model->shapes[shape].name] = theobject;
     }
