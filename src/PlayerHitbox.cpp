@@ -5,6 +5,8 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
+#include <cmath>
 
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -27,7 +29,6 @@ namespace
     GLuint g_PlayerHitboxEBO = 0;
 
     const float g_PlayerHitboxRadius = 0.25f;
-    const float g_PlayerHitboxHeight = 1.5f;
 
     void LoadDebugShadersFromFiles()
     {
@@ -47,48 +48,69 @@ namespace
 
 void InitPlayerHitbox()
 {
-    const float half_width = g_PlayerHitboxRadius;
-    const float half_depth = g_PlayerHitboxRadius;
+    std::vector<GLfloat> positions;
+    std::vector<GLuint> indices;
+    float r = g_PlayerHitboxRadius;
+    float sphere_heights[3] = {0.25f, 0.75f, 1.25f};
 
-    const GLfloat positions[] = {
-        -half_width,
-        0.0f,
-        -half_depth,
-        1.0f,
-        half_width,
-        0.0f,
-        -half_depth,
-        1.0f,
-        half_width,
-        0.0f,
-        half_depth,
-        1.0f,
-        -half_width,
-        0.0f,
-        half_depth,
-        1.0f,
-        -half_width,
-        g_PlayerHitboxHeight,
-        -half_depth,
-        1.0f,
-        half_width,
-        g_PlayerHitboxHeight,
-        -half_depth,
-        1.0f,
-        half_width,
-        g_PlayerHitboxHeight,
-        half_depth,
-        1.0f,
-        -half_width,
-        g_PlayerHitboxHeight,
-        half_depth,
-        1.0f,
-    };
+    int points_per_circle = 16;
+    GLuint vertex_offset = 0;
 
-    const GLuint indices[] = {
-        0, 1, 1, 2, 2, 3, 3, 0,
-        4, 5, 5, 6, 6, 7, 7, 4,
-        0, 4, 1, 5, 2, 6, 3, 7};
+    for (float h_offset : sphere_heights)
+    {
+        glm::vec3 center = glm::vec3(0.0f, h_offset, 0.0f);
+
+        // 1. XY Circle (front-facing)
+        GLuint xy_start = vertex_offset;
+        for (int i = 0; i < points_per_circle; ++i)
+        {
+            float theta = 2.0f * 3.14159265f * (float)i / (float)points_per_circle;
+            positions.push_back(center.x + r * cosf(theta));
+            positions.push_back(center.y + r * sinf(theta));
+            positions.push_back(center.z);
+            positions.push_back(1.0f);
+        }
+        for (int i = 0; i < points_per_circle; ++i)
+        {
+            indices.push_back(xy_start + i);
+            indices.push_back(xy_start + (i + 1) % points_per_circle);
+        }
+        vertex_offset += points_per_circle;
+
+        // 2. YZ Circle (side-facing)
+        GLuint yz_start = vertex_offset;
+        for (int i = 0; i < points_per_circle; ++i)
+        {
+            float theta = 2.0f * 3.14159265f * (float)i / (float)points_per_circle;
+            positions.push_back(center.x);
+            positions.push_back(center.y + r * cosf(theta));
+            positions.push_back(center.z + r * sinf(theta));
+            positions.push_back(1.0f);
+        }
+        for (int i = 0; i < points_per_circle; ++i)
+        {
+            indices.push_back(yz_start + i);
+            indices.push_back(yz_start + (i + 1) % points_per_circle);
+        }
+        vertex_offset += points_per_circle;
+
+        // 3. ZX Circle (top-facing)
+        GLuint zx_start = vertex_offset;
+        for (int i = 0; i < points_per_circle; ++i)
+        {
+            float theta = 2.0f * 3.14159265f * (float)i / (float)points_per_circle;
+            positions.push_back(center.x + r * cosf(theta));
+            positions.push_back(center.y);
+            positions.push_back(center.z + r * sinf(theta));
+            positions.push_back(1.0f);
+        }
+        for (int i = 0; i < points_per_circle; ++i)
+        {
+            indices.push_back(zx_start + i);
+            indices.push_back(zx_start + (i + 1) % points_per_circle);
+        }
+        vertex_offset += points_per_circle;
+    }
 
     LoadDebugShadersFromFiles();
 
@@ -97,13 +119,13 @@ void InitPlayerHitbox()
 
     glGenBuffers(1, &g_PlayerHitboxVBOPositions);
     glBindBuffer(GL_ARRAY_BUFFER, g_PlayerHitboxVBOPositions);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(GLfloat), positions.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
     glGenBuffers(1, &g_PlayerHitboxEBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_PlayerHitboxEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
 
     glBindVertexArray(0);
 }
@@ -125,7 +147,10 @@ void DrawPlayerHitbox(glm::mat4 view, glm::mat4 projection)
     glDisable(GL_CULL_FACE);
     glLineWidth(2.0f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+
+    // 3 spheres * 3 circles/sphere * 16 segments/circle * 2 indices/segment = 288 indices
+    glDrawElements(GL_LINES, 288, GL_UNSIGNED_INT, 0);
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_CULL_FACE);
     glBindVertexArray(0);
