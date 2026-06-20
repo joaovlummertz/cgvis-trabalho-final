@@ -1,0 +1,167 @@
+# J.A.C.K. 1.1.3773 Freeware MTL file
+# 15 materials
+newmtl GENERIC025
+map_Ka generic025.tga
+map_Kd generic025.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl EXIT1
+map_Ka exit1.tga
+map_Kd exit1.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl AIR_C1
+map_Ka air_c1.tga
+map_Kd air_c1.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl SUBWAY_INPANEL
+map_Ka subway_inpanel.tga
+map_Kd subway_inpanel.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl ORIGIN
+map_Ka origin.tga
+map_Kd origin.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl SUBWAY_SEAT2
+map_Ka subway_seat2.tga
+map_Kd subway_seat2.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl SUBWAY_CEILING
+map_Ka subway_ceiling.tga
+map_Kd subway_ceiling.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl SUBWAY_OUTEND
+map_Ka subway_outend.tga
+map_Kd subway_outend.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl SUBWAY_DOOR
+map_Ka subway_door.tga
+map_Kd subway_door.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl SUBWAY_INEND
+map_Ka subway_inend.tga
+map_Kd subway_inend.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl SUBWAY_SEAT
+map_Ka subway_seat.tga
+map_Kd subway_seat.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl SUBWAY_LIGHTS
+map_Ka subway_lights.tga
+map_Kd subway_lights.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl SUBWAY_OUTSIDE
+map_Ka subway_outside.tga
+map_Kd subway_outside.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl SUBWAYFLOOR2
+map_Ka subwayfloor2.tga
+map_Kd subwayfloor2.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl SUBWAY_FLOOR1
+map_Ka subway_floor1.tga
+map_Kd subway_floor1.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
