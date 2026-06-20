@@ -44,17 +44,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl ORIGIN
-map_Ka origin.tga
-map_Kd origin.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl SUBWAY_SEAT2
 map_Ka subway_seat2.tga
 map_Kd subway_seat2.tga

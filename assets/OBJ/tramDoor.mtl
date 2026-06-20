@@ -1,0 +1,24 @@
+# J.A.C.K. 1.1.3773 Freeware MTL file
+# 3 materials
+newmtl SUBWAY_DOOR
+map_Ka subway_door.tga
+map_Kd subway_door.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+newmtl SUBWAY_OUTSIDE
+map_Ka subway_outside.tga
+map_Kd subway_outside.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
