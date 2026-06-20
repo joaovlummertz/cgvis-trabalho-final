@@ -208,6 +208,9 @@ int main(int argc, char *argv[])
     ObjModel mapintromodel("../../assets/OBJ/maps/intro.obj");
     BuildTrianglesAndAddToVirtualScene(&mapintromodel, "../../assets/textures/");
 
+    ObjModel trammodel("../../assets/OBJ/tram.obj");
+    BuildTrianglesAndAddToVirtualScene(&trammodel, "../../assets/textures/");
+
     InitPlayerHitbox();
 
     Camera Camera;
@@ -228,7 +231,7 @@ int main(int argc, char *argv[])
         float delta_time = current_time - previous_time;
         previous_time = current_time;
 
-        Player::UpdatePlayer(delta_time);
+        Player::UpdatePlayer(delta_time, InputHandler::inputState.g_UseNoclip);
 
         // Compute mouse movement delta
         double mouseX = InputHandler::inputState.g_MouseX;
@@ -289,6 +292,8 @@ int main(int argc, char *argv[])
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
 
         DrawVirtualObject("Brush"); // O arquivo OBJ do mapa é definido por uma coleção de objetos chamados 'Brush'. Isso é assim pois é a maneira como a ferramente J.A.C.K exporta os mapas.
+
+        DrawVirtualObject("Tram");
 
         DrawPlayerHitbox(view, projection);
 

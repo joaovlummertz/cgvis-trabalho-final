@@ -57,6 +57,11 @@ namespace InputHandler
         {
             inputState.g_ShowHitbox = !inputState.g_ShowHitbox;
         }
+        if (key == GLFW_KEY_P && action == GLFW_PRESS)
+        {
+            inputState.g_UseNoclip = !inputState.g_UseNoclip;
+            printf("noClip activated\n");
+        }
     }
 
     void Init(GLFWwindow *window)

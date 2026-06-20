@@ -15,7 +15,7 @@ namespace Player
 
     extern PlayerState playerState;
 
-    void UpdatePlayer(float delta_time);
+    void UpdatePlayer(float delta_time, bool noClip);
     glm::vec4 GetForwardVector();
 } // namespace Player
 

@@ -49,17 +49,20 @@ namespace Player
         glm::vec3 ap = p - a;
         float d1 = glm::dot(ab, ap);
         float d2 = glm::dot(ac, ap);
-        if (d1 <= 0.0f && d2 <= 0.0f) return a; // barycentric coordinates (1,0,0)
+        if (d1 <= 0.0f && d2 <= 0.0f)
+            return a; // barycentric coordinates (1,0,0)
 
         // Check if P in vertex region outside B
         glm::vec3 bp = p - b;
         float d3 = glm::dot(ab, bp);
         float d4 = glm::dot(ac, bp);
-        if (d3 >= 0.0f && d4 <= d3) return b; // barycentric coordinates (0,1,0)
+        if (d3 >= 0.0f && d4 <= d3)
+            return b; // barycentric coordinates (0,1,0)
 
         // Check if P in edge region of AB, if so return projection of P onto AB
-        float vc = d1*d4 - d3*d2;
-        if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f) {
+        float vc = d1 * d4 - d3 * d2;
+        if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f)
+        {
             float v = d1 / (d1 - d3);
             return a + v * ab; // barycentric coordinates (1-v, v, 0)
         }
@@ -68,18 +71,21 @@ namespace Player
         glm::vec3 cp = p - c;
         float d5 = glm::dot(ab, cp);
         float d6 = glm::dot(ac, cp);
-        if (d6 >= 0.0f && d5 <= d6) return c; // barycentric coordinates (0,0,1)
+        if (d6 >= 0.0f && d5 <= d6)
+            return c; // barycentric coordinates (0,0,1)
 
         // Check if P in edge region of AC, if so return projection of P onto AC
-        float vb = d5*d2 - d1*d6;
-        if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f) {
+        float vb = d5 * d2 - d1 * d6;
+        if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f)
+        {
             float w = d2 / (d2 - d6);
             return a + w * ac; // barycentric coordinates (1-w, 0, w)
         }
 
         // Check if P in edge region of BC, if so return projection of P onto BC
-        float va = d3*d6 - d5*d4;
-        if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f) {
+        float va = d3 * d6 - d5 * d4;
+        if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f)
+        {
             float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
             return b + w * (c - b); // barycentric coordinates (0, 1-w, w)
         }
@@ -91,7 +97,7 @@ namespace Player
         return a + ab * v + ac * w; // = u*a + v*b + w*c, u = 1.0f - v - w
     }
 
-    glm::vec4 ResolveCollisions(glm::vec4 position)
+    glm::vec4 ResolveCollisions(glm::vec4 position, bool noClip)
     {
         float r = 0.25f;
         // Approximating a capsule height of 1.5f with three overlapping spheres
@@ -103,6 +109,11 @@ namespace Player
         for (int iter = 0; iter < 4; ++iter)
         {
             bool collided = false;
+
+            if (noClip)
+            {
+                return glm::vec4(pos, 1.0f);
+            }
 
             for (float h_offset : sphere_heights)
             {
@@ -127,14 +138,15 @@ namespace Player
                     bool overlap = (A_min.x <= B_max.x) && (A_max.x >= B_min.x) &&
                                    (A_min.y <= B_max.y) && (A_max.y >= B_min.y) &&
                                    (A_min.z <= B_max.z) && (A_max.z >= B_min.z);
-                    if (!overlap) continue;
+                    if (!overlap)
+                        continue;
 
                     // Narrow phase (triangle overlap)
                     for (size_t i = 0; i < obj.vertices.size(); i += 3)
                     {
                         glm::vec3 a = obj.vertices[i] * 0.02f;
-                        glm::vec3 b = obj.vertices[i+1] * 0.02f;
-                        glm::vec3 c = obj.vertices[i+2] * 0.02f;
+                        glm::vec3 b = obj.vertices[i + 1] * 0.02f;
+                        glm::vec3 c = obj.vertices[i + 2] * 0.02f;
 
                         glm::vec3 q = ClosestPointTriangle(sphere_center, a, b, c);
                         float dist = glm::length(sphere_center - q);
@@ -172,7 +184,7 @@ namespace Player
         return glm::vec4(pos, 1.0f);
     }
 
-    void UpdatePlayer(float delta_time)
+    void UpdatePlayer(float delta_time, bool noClip)
     {
         glm::vec4 forward;
         glm::vec4 right;
@@ -210,9 +222,10 @@ namespace Player
             glm::vec4 current_pos = playerState.g_PlayerPosition;
 
             // Run the resolver incrementally along the movement vector to prevent tunneling
+
             for (int i = 0; i < num_steps; ++i)
             {
-                current_pos = ResolveCollisions(current_pos + step_displacement);
+                current_pos = ResolveCollisions(current_pos + step_displacement, noClip);
             }
 
             playerState.g_PlayerPosition = current_pos;
