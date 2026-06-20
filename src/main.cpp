@@ -211,6 +211,9 @@ int main(int argc, char *argv[])
     ObjModel trammodel("../../assets/OBJ/tram.obj");
     BuildTrianglesAndAddToVirtualScene(&trammodel, "../../assets/textures/");
 
+    ObjModel tramdoormodel("../../assets/OBJ/tramDoor.obj");
+    BuildTrianglesAndAddToVirtualScene(&tramdoormodel, "../../assets/textures/");
+
     InitPlayerHitbox();
 
     Camera Camera;
@@ -291,9 +294,10 @@ int main(int argc, char *argv[])
         model = Matrix_Translate(0.0f, 0.0f, 0.0f) * Matrix_Scale(0.02f, 0.02f, 0.02f);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
 
-        DrawVirtualObject("Brush"); // O arquivo OBJ do mapa é definido por uma coleção de objetos chamados 'Brush'. Isso é assim pois é a maneira como a ferramente J.A.C.K exporta os mapas.
+        DrawVirtualObject("Map"); // O arquivo OBJ do mapa é definido por uma coleção de objetos chamados 'Brush'. Isso é assim pois é a maneira como a ferramente J.A.C.K exporta os mapas.
 
         DrawVirtualObject("Tram");
+        DrawVirtualObject("TramDoor");
 
         DrawPlayerHitbox(view, projection);
 
