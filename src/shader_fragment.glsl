@@ -26,6 +26,14 @@ uniform vec4 bbox_max;
 
 // Variável para acesso das imagens de textura
 uniform sampler2D TextureImage;
+uniform bool hasTexture;
+uniform vec3 light_position;
+uniform vec3 light_color;
+uniform vec3 ambient_color;
+uniform vec3 material_ka;
+uniform vec3 material_kd;
+uniform vec3 material_ks;
+uniform float material_shininess;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
@@ -53,22 +61,26 @@ void main()
     vec4 n = normalize(normal);
 
     // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
-    vec4 l = normalize(vec4(1.0,1.0,0.0,0.0));
+    vec4 l = normalize(vec4(light_position, 0.0) - p);
 
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
 
-    // Coordenadas de textura U e V
-    float U = 0.0;
-    float V = 0.0;
+    vec3 base_color = vec3(1.0);
+    if (hasTexture)
+    {
+        base_color = texture(TextureImage, texcoords).rgb;
+    }
 
-	// Coeficiente de refletância difusa
-    vec3 Kd0 = texture(TextureImage, texcoords).rgb;
+    vec3 ambient = ambient_color * material_ka * base_color;
+    float lambert = max(0.0, dot(n, l));
+    vec3 diffuse = light_color * material_kd * base_color * lambert;
 
-    // Equação de Iluminação
-    float lambert = max(0,dot(n,l));
+    vec4 r = reflect(-l, n);
+    float spec_angle = max(0.0, dot(normalize(v), normalize(r)));
+    vec3 specular = light_color * material_ks * pow(spec_angle, material_shininess);
 
-    color.rgb = Kd0 * (lambert + 0.01);
+    color.rgb = ambient + diffuse + specular;
 
     // NOTE: Se você quiser fazer o rendering de objetos transparentes, é
     // necessário:

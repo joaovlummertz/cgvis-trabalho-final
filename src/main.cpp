@@ -139,6 +139,14 @@ GLint g_projection_uniform;
 GLint g_object_id_uniform;
 GLint g_bbox_min_uniform;
 GLint g_bbox_max_uniform;
+GLint g_has_texture_uniform;
+GLint g_light_position_uniform;
+GLint g_light_color_uniform;
+GLint g_ambient_color_uniform;
+GLint g_material_ka_uniform;
+GLint g_material_kd_uniform;
+GLint g_material_ks_uniform;
+GLint g_material_shininess_uniform;
 
 int main(int argc, char *argv[])
 {
@@ -383,6 +391,7 @@ void DrawVirtualObject(const char *prefix)
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, obj.texture_id);
         glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage"), 0);
+        glUniform1i(g_has_texture_uniform, obj.texture_id != 0 ? 1 : 0);
 
         glUniform4f(g_bbox_min_uniform, obj.bbox_min.x, obj.bbox_min.y, obj.bbox_min.z, 1.0f);
         glUniform4f(g_bbox_max_uniform, obj.bbox_max.x, obj.bbox_max.y, obj.bbox_max.z, 1.0f);
@@ -414,6 +423,14 @@ void LoadShadersFromFiles()
     g_projection_uniform = glGetUniformLocation(g_GpuProgramID, "projection"); // Variável da matriz "projection" em shader_vertex.glsl
     g_bbox_min_uniform = glGetUniformLocation(g_GpuProgramID, "bbox_min");
     g_bbox_max_uniform = glGetUniformLocation(g_GpuProgramID, "bbox_max");
+    g_has_texture_uniform = glGetUniformLocation(g_GpuProgramID, "hasTexture");
+    g_light_position_uniform = glGetUniformLocation(g_GpuProgramID, "light_position");
+    g_light_color_uniform = glGetUniformLocation(g_GpuProgramID, "light_color");
+    g_ambient_color_uniform = glGetUniformLocation(g_GpuProgramID, "ambient_color");
+    g_material_ka_uniform = glGetUniformLocation(g_GpuProgramID, "material_ka");
+    g_material_kd_uniform = glGetUniformLocation(g_GpuProgramID, "material_kd");
+    g_material_ks_uniform = glGetUniformLocation(g_GpuProgramID, "material_ks");
+    g_material_shininess_uniform = glGetUniformLocation(g_GpuProgramID, "material_shininess");
 
     // Variáveis em "shader_fragment.glsl" para acesso das imagens de textura
     glUseProgram(g_GpuProgramID);
@@ -421,6 +438,13 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage2"), 2);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage3"), 3);
+    glUniform3f(g_light_position_uniform, 20.0f, 30.0f, 25.0f);
+    glUniform3f(g_light_color_uniform, 1.0f, 0.98f, 0.92f);
+    glUniform3f(g_ambient_color_uniform, 0.18f, 0.18f, 0.22f);
+    glUniform3f(g_material_ka_uniform, 0.45f, 0.45f, 0.45f);
+    glUniform3f(g_material_kd_uniform, 1.0f, 1.0f, 1.0f);
+    glUniform3f(g_material_ks_uniform, 0.35f, 0.35f, 0.35f);
+    glUniform1f(g_material_shininess_uniform, 32.0f);
     glUseProgram(0);
 }
 
