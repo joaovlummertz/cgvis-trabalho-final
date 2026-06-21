@@ -5,7 +5,7 @@
 
 struct PlayerState
 {
-    glm::vec4 g_PlayerPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    glm::vec4 g_PlayerPosition = glm::vec4(31.247f, -4.820f, -6.341f, 0.0f);
     float g_PlayerMoveSpeed = 15.0f;
     float g_PlayerYaw = 0.0f;
     float g_PlayerPitch = 0.0f;

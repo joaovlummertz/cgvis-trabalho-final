@@ -205,8 +205,8 @@ int main(int argc, char *argv[])
     ObjModel playermodel("../../assets/OBJ/gordon.obj");
     BuildTrianglesAndAddToVirtualScene(&playermodel, "../../assets/SMD/");
 
-    ObjModel mapintromodel("../../assets/OBJ/maps/intro.obj");
-    BuildTrianglesAndAddToVirtualScene(&mapintromodel, "../../assets/textures/");
+    ObjModel mapmodel("../../assets/OBJ/maps/fullmap.obj");
+    BuildTrianglesAndAddToVirtualScene(&mapmodel, "../../assets/textures/");
 
     ObjModel trammodel("../../assets/OBJ/tram.obj");
     BuildTrianglesAndAddToVirtualScene(&trammodel, "../../assets/textures/");
@@ -235,6 +235,10 @@ int main(int argc, char *argv[])
         previous_time = current_time;
 
         Player::UpdatePlayer(delta_time, InputHandler::inputState.g_UseNoclip);
+        // printf("Player position: (%.3f, %.3f, %.3f)\n",
+        //        Player::playerState.g_PlayerPosition.x,
+        //        Player::playerState.g_PlayerPosition.y,
+        //        Player::playerState.g_PlayerPosition.z);
 
         // Compute mouse movement delta
         double mouseX = InputHandler::inputState.g_MouseX;
@@ -291,12 +295,13 @@ int main(int argc, char *argv[])
         }
 
         // Desenhamos o mapa
-        model = Matrix_Translate(0.0f, 0.0f, 0.0f) * Matrix_Scale(0.02f, 0.02f, 0.02f);
+        model = Matrix_Scale(0.02f, 0.02f, 0.02f) * Matrix_Translate(0.0f, 0.0f, 0.0f);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
 
-        DrawVirtualObject("Map"); // O arquivo OBJ do mapa é definido por uma coleção de objetos chamados 'Brush'. Isso é assim pois é a maneira como a ferramente J.A.C.K exporta os mapas.
+        DrawVirtualObject("Brush"); // O arquivo OBJ do mapa é definido por uma coleção de objetos chamados 'Brush'. Isso é assim pois é a maneira como a ferramente J.A.C.K exporta os mapas.
 
         DrawVirtualObject("Tram");
+
         DrawVirtualObject("TramDoor");
 
         DrawPlayerHitbox(view, projection);
