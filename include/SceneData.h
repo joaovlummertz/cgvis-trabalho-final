@@ -16,8 +16,6 @@ struct SceneObject
     size_t num_indices;
     GLenum rendering_mode;
     GLuint vertex_array_object_id;
-    glm::vec3 bbox_min;
-    glm::vec3 bbox_max;
     GLuint texture_id;
 };
 

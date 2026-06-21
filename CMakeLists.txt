@@ -16,6 +16,7 @@ set(SOURCES
   src/Player.cpp
   src/PlayerHitbox.cpp
   src/Camera.cpp
+  src/Window.cpp
 
 )
 
