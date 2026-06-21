@@ -35,6 +35,7 @@
 
 #include "utils.h"
 #include "matrices.h"
+#include "SceneData.h"
 #include "Player.h"
 #include "PlayerHitbox.h"
 #include "PlayerHitbox.h"
@@ -91,7 +92,7 @@ struct ObjModel
 void PushMatrix(glm::mat4 M);
 void PopMatrix(glm::mat4 &M);
 
-void BuildTrianglesAndAddToVirtualScene(ObjModel *, const std::string &basepath); // Constrói representação de um ObjModel como malha de triângulos para renderização
+void BuildTrianglesAndAddToVirtualScene(ObjModel *, const std::string &basepath, bool build_collision = false, float collision_scale = 1.0f); // Constrói representação de um ObjModel como malha de triângulos para renderização
 void LoadShadersFromFiles();                                                      // Carrega os shaders de vértice e fragmento, criando um programa de GPU
 GLuint LoadTextureImage(const char *filename);                                    // Função que carrega imagens de textura
 void DrawVirtualObject(const char *object_name);                                  // Desenha um objeto armazenado em g_VirtualScene
@@ -104,21 +105,6 @@ void PrintObjModelInfo(ObjModel *);                                             
 void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
 void ErrorCallback(int error, const char *description);
 
-// Definimos uma estrutura que armazenará dados necessários para renderizar
-// cada objeto da cena virtual.
-struct SceneObject
-{
-    std::string name;              // Nome do objeto
-    size_t first_index;            // Índice do primeiro vértice dentro do vetor indices[] definido em BuildTrianglesAndAddToVirtualScene()
-    size_t num_indices;            // Número de índices do objeto dentro do vetor indices[] definido em BuildTrianglesAndAddToVirtualScene()
-    GLenum rendering_mode;         // Modo de rasterização (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc.)
-    GLuint vertex_array_object_id; // ID do VAO onde estão armazenados os atributos do modelo
-    glm::vec3 bbox_min;            // Axis-Aligned Bounding Box do objeto
-    glm::vec3 bbox_max;
-    GLuint texture_id;
-    std::vector<glm::vec3> vertices; // Added for collision detection on CPU
-};
-
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
 // Mouse tracking for camera updates
@@ -126,6 +112,7 @@ double g_LastMouseX = 0.0;
 double g_LastMouseY = 0.0;
 
 std::map<std::string, SceneObject> g_VirtualScene;
+std::vector<CollisionObject> g_CollisionScene;
 
 std::stack<glm::mat4> g_MatrixStack; // usar mais
 
@@ -214,7 +201,7 @@ int main(int argc, char *argv[])
     BuildTrianglesAndAddToVirtualScene(&playermodel, "../../assets/SMD/");
 
     ObjModel mapmodel("../../assets/OBJ/maps/fullmap.obj");
-    BuildTrianglesAndAddToVirtualScene(&mapmodel, "../../assets/textures/");
+    BuildTrianglesAndAddToVirtualScene(&mapmodel, "../../assets/textures/", true, 0.02f);
 
     ObjModel trammodel("../../assets/OBJ/tram.obj");
     BuildTrianglesAndAddToVirtualScene(&trammodel, "../../assets/textures/");
@@ -468,7 +455,7 @@ void PopMatrix(glm::mat4 &M)
     }
 }
 
-void BuildTrianglesAndAddToVirtualScene(ObjModel *model, const std::string &basepath)
+void BuildTrianglesAndAddToVirtualScene(ObjModel *model, const std::string &basepath, bool build_collision, float collision_scale)
 {
     GLuint vertex_array_object_id;
     glGenVertexArrays(1, &vertex_array_object_id);
@@ -562,9 +549,23 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model, const std::string &base
 
         theobject.bbox_min = bbox_min;
         theobject.bbox_max = bbox_max;
-        theobject.vertices = shape_vertices;
 
         g_VirtualScene[model->shapes[shape].name] = theobject;
+
+        if (build_collision)
+        {
+            CollisionObject collision_object;
+            collision_object.name = model->shapes[shape].name;
+            collision_object.bbox_min = bbox_min * collision_scale;
+            collision_object.bbox_max = bbox_max * collision_scale;
+            collision_object.vertices.reserve(shape_vertices.size());
+            for (const glm::vec3 &vertex : shape_vertices)
+            {
+                collision_object.vertices.push_back(vertex * collision_scale);
+            }
+
+            g_CollisionScene.push_back(collision_object);
+        }
     }
 
     GLuint VBO_model_coefficients_id;

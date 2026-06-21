@@ -8,23 +8,8 @@
 #include <algorithm>
 #include <glad/glad.h>
 
+#include "SceneData.h"
 #include "InputHandler.h"
-
-// Struct identical to the one in main.cpp to resolve types
-struct SceneObject
-{
-    std::string name;              // Nome do objeto
-    size_t first_index;            // Índice do primeiro vértice dentro do vetor indices[] definido em BuildTrianglesAndAddToVirtualScene()
-    size_t num_indices;            // Número de índices do objeto dentro do vetor indices[] definido em BuildTrianglesAndAddToVirtualScene()
-    GLenum rendering_mode;         // Modo de rasterização (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc.)
-    GLuint vertex_array_object_id; // ID do VAO onde estão armazenados os atributos do modelo
-    glm::vec3 bbox_min;            // Axis-Aligned Bounding Box do objeto
-    glm::vec3 bbox_max;
-    GLuint texture_id;
-    std::vector<glm::vec3> vertices; // Added for collision detection on CPU
-};
-
-extern std::map<std::string, SceneObject> g_VirtualScene;
 
 namespace Player
 {
@@ -123,16 +108,10 @@ namespace Player
                 glm::vec3 A_min = sphere_center - glm::vec3(r);
                 glm::vec3 A_max = sphere_center + glm::vec3(r);
 
-                for (const auto &pair : g_VirtualScene)
+                for (const auto &obj : g_CollisionScene)
                 {
-                    const std::string &name = pair.first;
-                    // Exclude player model shapes from collision
-                    if (name.find("Gordon") != std::string::npos)
-                        continue;
-
-                    const SceneObject &obj = pair.second;
-                    glm::vec3 B_min = obj.bbox_min * 0.02f;
-                    glm::vec3 B_max = obj.bbox_max * 0.02f;
+                    glm::vec3 B_min = obj.bbox_min;
+                    glm::vec3 B_max = obj.bbox_max;
 
                     // Broad phase check (AABB overlap)
                     bool overlap = (A_min.x <= B_max.x) && (A_max.x >= B_min.x) &&
@@ -144,16 +123,17 @@ namespace Player
                     // Narrow phase (triangle overlap)
                     for (size_t i = 0; i < obj.vertices.size(); i += 3)
                     {
-                        glm::vec3 a = obj.vertices[i] * 0.02f;
-                        glm::vec3 b = obj.vertices[i + 1] * 0.02f;
-                        glm::vec3 c = obj.vertices[i + 2] * 0.02f;
+                        glm::vec3 a = obj.vertices[i];
+                        glm::vec3 b = obj.vertices[i + 1];
+                        glm::vec3 c = obj.vertices[i + 2];
 
                         glm::vec3 q = ClosestPointTriangle(sphere_center, a, b, c);
-                        float dist = glm::length(sphere_center - q);
+                        float dist2 = glm::length2(sphere_center - q);
 
-                        if (dist < r)
+                        if (dist2 < r * r)
                         {
                             collided = true;
+                            float dist = std::sqrt(dist2);
 
                             glm::vec3 normal;
                             if (dist > 1e-6f)
