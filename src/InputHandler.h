@@ -18,7 +18,6 @@ struct InputState
     bool g_interact = false;
     double g_MouseX = 0.0;
     double g_MouseY = 0.0;
-    double g_ScrollY = 0.0;
 };
 namespace InputHandler
 {

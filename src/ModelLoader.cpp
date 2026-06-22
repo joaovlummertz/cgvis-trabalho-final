@@ -132,16 +132,39 @@ void ModelLoader::LoadAndAddToScene(
         {
             assert(model.shapes[shape].mesh.num_face_vertices[triangle] == 3);
 
+            const size_t triangle_offset = 3 * triangle;
+            if (triangle_offset + 2 >= model.shapes[shape].mesh.indices.size())
+            {
+                fprintf(stderr, "Aviso: triangulo incompleto ignorado em '%s' (%s).\n",
+                        model_path, model.shapes[shape].name.c_str());
+                continue;
+            }
+
             tinyobj::index_t triangle_indices[3];
             glm::vec3 triangle_positions[3];
+            bool valid_triangle = true;
             for (size_t vertex = 0; vertex < 3; ++vertex)
             {
-                triangle_indices[vertex] = model.shapes[shape].mesh.indices[3 * triangle + vertex];
+                triangle_indices[vertex] = model.shapes[shape].mesh.indices[triangle_offset + vertex];
                 const int vertex_index = triangle_indices[vertex].vertex_index;
+                if (vertex_index < 0 ||
+                    static_cast<size_t>(3 * vertex_index + 2) >= model.attrib.vertices.size())
+                {
+                    valid_triangle = false;
+                    break;
+                }
+
                 triangle_positions[vertex] = glm::vec3(
                     model.attrib.vertices[3 * vertex_index + 0],
                     model.attrib.vertices[3 * vertex_index + 1],
                     model.attrib.vertices[3 * vertex_index + 2]);
+            }
+
+            if (!valid_triangle)
+            {
+                fprintf(stderr, "Aviso: indice de vertice invalido ignorado em '%s' (%s).\n",
+                        model_path, model.shapes[shape].name.c_str());
+                continue;
             }
 
             glm::vec3 face_normal = glm::cross(
@@ -155,7 +178,7 @@ void ModelLoader::LoadAndAddToScene(
             for (size_t vertex = 0; vertex < 3; ++vertex)
             {
                 tinyobj::index_t idx = triangle_indices[vertex];
-                indices.push_back(first_index + 3 * triangle + vertex);
+                indices.push_back(static_cast<GLuint>(model_coefficients.size() / 4));
 
                 const float vx = triangle_positions[vertex].x;
                 const float vy = triangle_positions[vertex].y;
@@ -175,7 +198,8 @@ void ModelLoader::LoadAndAddToScene(
                 bbox_max.y = std::max(bbox_max.y, vy);
                 bbox_max.z = std::max(bbox_max.z, vz);
 
-                if (idx.normal_index != -1)
+                if (idx.normal_index >= 0 &&
+                    static_cast<size_t>(3 * idx.normal_index + 2) < model.attrib.normals.size())
                 {
                     const float nx = model.attrib.normals[3 * idx.normal_index + 0];
                     const float ny = model.attrib.normals[3 * idx.normal_index + 1];
@@ -192,7 +216,8 @@ void ModelLoader::LoadAndAddToScene(
                 }
                 normal_coefficients.push_back(0.0f);
 
-                if (idx.texcoord_index != -1)
+                if (idx.texcoord_index >= 0 &&
+                    static_cast<size_t>(2 * idx.texcoord_index + 1) < model.attrib.texcoords.size())
                 {
                     const float u = model.attrib.texcoords[2 * idx.texcoord_index + 0];
                     const float v = model.attrib.texcoords[2 * idx.texcoord_index + 1];
@@ -206,6 +231,9 @@ void ModelLoader::LoadAndAddToScene(
                 }
             }
         }
+
+        if (indices.size() == first_index)
+            continue;
 
         size_t last_index = indices.size() - 1;
 
