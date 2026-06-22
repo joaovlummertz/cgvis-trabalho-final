@@ -18,11 +18,12 @@ namespace Player
 
     namespace
     {
-        constexpr float kGravity = 18.0f;
-        constexpr float kJumpSpeed = 11.0f;
-        constexpr float kMaxFallSpeed = 40.0f;
+        constexpr float kGravity = 12.0f;
+        constexpr float kJumpSpeed = 9.0f;
+        constexpr float kMaxFallSpeed = 25.0f;
         constexpr float kStepSize = 0.05f;
-        constexpr float kGroundSnapDistance = 0.35f;
+        constexpr float kGroundSnapDistance = 0.08f;
+        constexpr float kCollisionSkin = 0.002f;
         constexpr float kSlopeLimitY = 0.55f;
 
         glm::vec4 ProjectOntoPlane(glm::vec4 v, glm::vec3 normal)
@@ -66,6 +67,16 @@ namespace Player
                         *hit_floor = true;
                     if (hit_ceiling != nullptr && after.y > before.y && resolved.y <= after.y)
                         *hit_ceiling = true;
+
+                    // Vertical movement is handled in its own pass. Once the
+                    // floor or ceiling blocks that pass, consuming the
+                    // remaining substeps only repeats the same penetration and
+                    // correction, which appears as contact jitter.
+                    if ((step_displacement.y < 0.0f && hit_floor != nullptr && *hit_floor) ||
+                        (step_displacement.y > 0.0f && hit_ceiling != nullptr && *hit_ceiling))
+                    {
+                        break;
+                    }
                 }
             }
 
@@ -193,9 +204,9 @@ namespace Player
                         glm::vec3 q = ClosestPointTriangle(sphere_center, a, b, c);
                         float dist2 = glm::length2(sphere_center - q);
 
-                        if (dist2 < r * r)
+                        const float contact_radius = r + kCollisionSkin;
+                        if (dist2 < contact_radius * contact_radius)
                         {
-                            collided = true;
                             float dist = std::sqrt(dist2);
 
                             glm::vec3 normal;
@@ -208,8 +219,16 @@ namespace Player
                                 normal = glm::normalize(glm::cross(b - a, c - a));
                             }
 
-                            float penetration = r - dist;
-                            pos += normal * penetration;
+                            const float penetration = r - dist;
+                            if (penetration > 0.0f)
+                            {
+                                collided = true;
+                                pos += normal * penetration;
+                            }
+
+                            // Contacts inside the small skin count as grounded
+                            // without repeatedly pushing the player away from
+                            // an already stable floor.
                             if (hit_floor != nullptr && normal.y > 0.5f)
                                 *hit_floor = true;
                             if (hit_ceiling != nullptr && normal.y < -0.5f)
@@ -217,10 +236,13 @@ namespace Player
                             if (ground_normal != nullptr && normal.y > kSlopeLimitY && normal.y > ground_normal->y)
                                 *ground_normal = normal;
 
-                            // Update tracking variables immediately for next tests
-                            sphere_center = pos + glm::vec3(0.0f, h_offset, 0.0f);
-                            A_min = sphere_center - glm::vec3(r);
-                            A_max = sphere_center + glm::vec3(r);
+                            if (penetration > 0.0f)
+                            {
+                                // Update tracking variables immediately for next tests
+                                sphere_center = pos + glm::vec3(0.0f, h_offset, 0.0f);
+                                A_min = sphere_center - glm::vec3(r);
+                                A_max = sphere_center + glm::vec3(r);
+                            }
                         }
                     }
                 }
@@ -258,6 +280,9 @@ namespace Player
 
         if (noClip)
         {
+            playerState.g_PlayerVerticalVelocity = 0.0f;
+            playerState.g_PlayerIsGrounded = false;
+
             if (InputHandler::inputState.g_MoveUpPressed)
                 movement += up;
             if (InputHandler::inputState.g_MoveDownPressed)
