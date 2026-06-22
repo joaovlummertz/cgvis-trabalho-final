@@ -14,21 +14,37 @@
 
 namespace Player
 {
-    glm::vec4 ResolveCollisions(glm::vec4 position, bool noClip, bool *hit_floor = nullptr, bool *hit_ceiling = nullptr);
+    glm::vec4 ResolveCollisions(glm::vec4 position, bool noClip, bool *hit_floor = nullptr, bool *hit_ceiling = nullptr, glm::vec3 *ground_normal = nullptr);
 
     namespace
     {
-        constexpr float kGravity = 24.0f;
-        constexpr float kJumpSpeed = 8.0f;
+        constexpr float kGravity = 18.0f;
+        constexpr float kJumpSpeed = 11.0f;
         constexpr float kMaxFallSpeed = 40.0f;
-        constexpr float kStepSize = 0.1f;
+        constexpr float kStepSize = 0.05f;
+        constexpr float kGroundSnapDistance = 0.35f;
+        constexpr float kSlopeLimitY = 0.55f;
 
-        glm::vec4 ResolveMovement(glm::vec4 start_position, glm::vec4 displacement, bool noClip, bool *hit_floor = nullptr, bool *hit_ceiling = nullptr)
+        glm::vec4 ProjectOntoPlane(glm::vec4 v, glm::vec3 normal)
+        {
+            glm::vec3 vv = glm::vec3(v);
+            glm::vec3 projected = vv - glm::dot(vv, normal) * normal;
+            return glm::vec4(projected, v.w);
+        }
+
+        glm::vec4 ResolveMovement(glm::vec4 start_position,
+                                  glm::vec4 displacement,
+                                  bool noClip,
+                                  bool *hit_floor = nullptr,
+                                  bool *hit_ceiling = nullptr,
+                                  glm::vec3 *ground_normal = nullptr)
         {
             if (hit_floor != nullptr)
                 *hit_floor = false;
             if (hit_ceiling != nullptr)
                 *hit_ceiling = false;
+            if (ground_normal != nullptr)
+                *ground_normal = glm::vec3(0.0f, -1.0f, 0.0f);
 
             float dist = glm::length(displacement);
             int num_steps = std::max(1, (int)std::ceil(dist / kStepSize));
@@ -41,7 +57,7 @@ namespace Player
                 glm::vec3 before = glm::vec3(current_pos);
                 glm::vec3 after = glm::vec3(next_pos);
 
-                current_pos = ResolveCollisions(next_pos, noClip, hit_floor, hit_ceiling);
+                current_pos = ResolveCollisions(next_pos, noClip, hit_floor, hit_ceiling, ground_normal);
 
                 if (hit_floor != nullptr || hit_ceiling != nullptr)
                 {
@@ -125,7 +141,11 @@ namespace Player
         return a + ab * v + ac * w; // = u*a + v*b + w*c, u = 1.0f - v - w
     }
 
-    glm::vec4 ResolveCollisions(glm::vec4 position, bool noClip, bool *hit_floor, bool *hit_ceiling)
+    glm::vec4 ResolveCollisions(glm::vec4 position,
+                                bool noClip,
+                                bool *hit_floor,
+                                bool *hit_ceiling,
+                                glm::vec3 *ground_normal)
     {
         float r = 0.25f;
         // Approximating a capsule height of 1.5f with three overlapping spheres
@@ -194,6 +214,8 @@ namespace Player
                                 *hit_floor = true;
                             if (hit_ceiling != nullptr && normal.y < -0.5f)
                                 *hit_ceiling = true;
+                            if (ground_normal != nullptr && normal.y > kSlopeLimitY && normal.y > ground_normal->y)
+                                *ground_normal = normal;
 
                             // Update tracking variables immediately for next tests
                             sphere_center = pos + glm::vec3(0.0f, h_offset, 0.0f);
@@ -250,40 +272,74 @@ namespace Player
         }
         else
         {
-            if (InputHandler::inputState.g_JumpRequested && playerState.g_PlayerIsGrounded)
+            bool can_use_ground = playerState.g_PlayerIsGrounded && playerState.g_PlayerGroundNormal.y >= kSlopeLimitY;
+
+            if (InputHandler::inputState.g_JumpRequested && can_use_ground)
             {
                 playerState.g_PlayerVerticalVelocity = kJumpSpeed;
                 playerState.g_PlayerIsGrounded = false;
+                can_use_ground = false;
             }
 
             if (glm::length2(movement) > 0.0f)
                 movement = movement / glm::length(movement);
 
             glm::vec4 horizontal_displacement = movement * playerState.g_PlayerMoveSpeed * delta_time;
-            horizontal_displacement.y = 0.0f;
+            if (can_use_ground)
+                horizontal_displacement = ProjectOntoPlane(horizontal_displacement, playerState.g_PlayerGroundNormal);
+
             current_pos = ResolveMovement(current_pos, horizontal_displacement, noClip);
 
-            playerState.g_PlayerVerticalVelocity -= kGravity * delta_time;
-            if (playerState.g_PlayerVerticalVelocity < -kMaxFallSpeed)
-                playerState.g_PlayerVerticalVelocity = -kMaxFallSpeed;
-
-            glm::vec4 vertical_displacement = glm::vec4(0.0f, playerState.g_PlayerVerticalVelocity * delta_time, 0.0f, 0.0f);
             bool hit_floor = false;
             bool hit_ceiling = false;
-            current_pos = ResolveMovement(current_pos, vertical_displacement, noClip, &hit_floor, &hit_ceiling);
+            glm::vec3 contact_ground_normal(0.0f, 1.0f, 0.0f);
 
-            if (hit_floor && playerState.g_PlayerVerticalVelocity <= 0.0f)
+            if (can_use_ground)
             {
-                playerState.g_PlayerVerticalVelocity = 0.0f;
-                playerState.g_PlayerIsGrounded = true;
+                current_pos = ResolveMovement(
+                    current_pos,
+                    glm::vec4(0.0f, -kGroundSnapDistance, 0.0f, 0.0f),
+                    noClip,
+                    &hit_floor,
+                    &hit_ceiling,
+                    &contact_ground_normal);
+
+                if (hit_floor && contact_ground_normal.y >= kSlopeLimitY)
+                {
+                    playerState.g_PlayerIsGrounded = true;
+                    playerState.g_PlayerGroundNormal = contact_ground_normal;
+                    playerState.g_PlayerVerticalVelocity = 0.0f;
+                }
+                else
+                {
+                    playerState.g_PlayerIsGrounded = false;
+                    playerState.g_PlayerGroundNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+                }
             }
-            else if (hit_ceiling && playerState.g_PlayerVerticalVelocity > 0.0f)
+
+            if (!playerState.g_PlayerIsGrounded)
             {
-                playerState.g_PlayerVerticalVelocity = 0.0f;
-            }
-            else
-            {
-                playerState.g_PlayerIsGrounded = false;
+                playerState.g_PlayerVerticalVelocity -= kGravity * delta_time;
+                if (playerState.g_PlayerVerticalVelocity < -kMaxFallSpeed)
+                    playerState.g_PlayerVerticalVelocity = -kMaxFallSpeed;
+
+                glm::vec4 vertical_displacement = glm::vec4(0.0f, playerState.g_PlayerVerticalVelocity * delta_time, 0.0f, 0.0f);
+                current_pos = ResolveMovement(current_pos, vertical_displacement, noClip, &hit_floor, &hit_ceiling, &contact_ground_normal);
+
+                if (hit_floor && playerState.g_PlayerVerticalVelocity <= 0.0f && contact_ground_normal.y >= kSlopeLimitY)
+                {
+                    playerState.g_PlayerVerticalVelocity = 0.0f;
+                    playerState.g_PlayerIsGrounded = true;
+                    playerState.g_PlayerGroundNormal = contact_ground_normal;
+                }
+                else if (hit_ceiling && playerState.g_PlayerVerticalVelocity > 0.0f)
+                {
+                    playerState.g_PlayerVerticalVelocity = 0.0f;
+                }
+                else if (!playerState.g_PlayerIsGrounded)
+                {
+                    playerState.g_PlayerGroundNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+                }
             }
         }
 
