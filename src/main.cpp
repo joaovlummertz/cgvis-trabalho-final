@@ -13,6 +13,7 @@
 #include "Window.h"
 #include "Renderer.h"
 #include "ModelLoader.h"
+#include "TramIntro.h"
 
 std::map<std::string, SceneObject> g_VirtualScene;
 std::vector<CollisionObject> g_CollisionScene;
@@ -38,6 +39,7 @@ int main(int argc, char *argv[])
 
     InitPlayerHitbox();
     Camera camera;
+    TramIntro::Initialize();
 
     while (!glfwWindowShouldClose(WindowManager.window))
     {
@@ -46,9 +48,6 @@ int main(int argc, char *argv[])
         float delta_time = current_time - previous_time;
         previous_time = current_time;
 
-        // Input & State Management Updates
-        Player::UpdatePlayer(delta_time, InputHandler::inputState.g_UseNoclip);
-
         double mouseX = InputHandler::inputState.g_MouseX;
         double mouseY = InputHandler::inputState.g_MouseY;
         double dx = mouseX - g_LastMouseX;
@@ -56,12 +55,22 @@ int main(int argc, char *argv[])
         g_LastMouseX = mouseX;
         g_LastMouseY = mouseY;
 
+        if (TramIntro::IsActive())
+        {
+            TramIntro::Update(delta_time);
+        }
+        else
+        {
+            Player::UpdatePlayer(delta_time, InputHandler::inputState.g_UseNoclip);
+        }
+
         camera.Update(InputHandler::inputState, Player::playerState, dx, dy);
 
         // --- Rendering ---
         gameRenderer.ClearColor(0.9f, 0.9f, 1.0f, 1.0f);
 
         glm::mat4 view = Matrix_Camera_View(camera.camera_position_c, camera.camera_view_vector, camera.camera_up_vector);
+
         float field_of_view = 3.141592f / 3.0f;
         glm::mat4 projection = Matrix_Perspective(field_of_view, g_ScreenRatio, -0.1f, -100000.0f);
 
@@ -80,6 +89,9 @@ int main(int argc, char *argv[])
         gameRenderer.SetModelMatrix(mapModel);
 
         gameRenderer.DrawVirtualObject("Brush", g_VirtualScene);
+
+        glm::mat4 tram_model = TramIntro::GetModelMatrix();
+        gameRenderer.SetModelMatrix(tram_model);
         gameRenderer.DrawVirtualObject("Tram", g_VirtualScene);
         gameRenderer.DrawVirtualObject("TramDoor", g_VirtualScene);
 
