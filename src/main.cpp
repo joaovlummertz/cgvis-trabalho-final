@@ -1,5 +1,6 @@
 #include <map>
 #include <vector>
+#include <cmath>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/mat4x4.hpp>
@@ -25,6 +26,21 @@ double g_LastMouseX = 0.0;
 double g_LastMouseY = 0.0;
 float g_ScreenRatio = 1.0f;
 
+static const glm::vec3 g_GroundCrowbarPosition(-48.027f, -5.760f, 16.319f);
+static bool g_GroundCrowbarAvailable = true;
+
+static bool IsPlayerSteppingOnGroundCrowbar()
+{
+    const glm::vec3 playerPosition(Player::playerState.g_PlayerPosition);
+    const float dx = playerPosition.x - g_GroundCrowbarPosition.x;
+    const float dz = playerPosition.z - g_GroundCrowbarPosition.z;
+    const float pickupRadius = 0.65f;
+    const float maxVerticalDistance = 1.5f;
+
+    return dx * dx + dz * dz <= pickupRadius * pickupRadius &&
+           std::fabs(playerPosition.y - g_GroundCrowbarPosition.y) <= maxVerticalDistance;
+}
+
 static glm::mat4 GetCrowbarModelMatrixFirstPerson()
 {
     // Camera-space coordinates keep the crowbar fixed to the viewport:
@@ -36,6 +52,7 @@ static glm::mat4 GetCrowbarModelMatrixFirstPerson()
     return Matrix_Translate(0.20f, -0.12f, -0.45f) *
            Matrix_Rotate_Z(0.12f) *
            Matrix_Rotate_X(1.25f) *
+           Matrix_Rotate_Y(3.141592f) *
            Matrix_Scale(0.02f, 0.02f, 0.02f) *
            Matrix_Translate(-crowbarCenter.x, -crowbarCenter.y, -crowbarCenter.z);
 }
@@ -49,6 +66,22 @@ static glm::mat4 GetCrowbarModelMatrixThirdPerson(const PlayerState &playerState
                       Matrix_Rotate_X(0.95f) *
                       Matrix_Scale(0.02f, 0.02f, 0.02f);
     return model;
+}
+
+static glm::mat4 GetGroundCrowbarModelMatrix()
+{
+    const glm::vec3 crowbarCenter(-10.7806295f, 33.118441f, 8.964881f);
+    // The crowbar already lies along the ground. Roll it around its long
+    // (local Z) axis so the hooked end faces sideways instead of upward.
+    const float halfHeightWhenRolled = 0.0164f;
+
+    return Matrix_Translate(g_GroundCrowbarPosition.x,
+                            g_GroundCrowbarPosition.y + halfHeightWhenRolled,
+                            g_GroundCrowbarPosition.z) *
+           Matrix_Rotate_Y(0.6f) *
+           Matrix_Rotate_Z(3.141592f / 2.0f) *
+           Matrix_Scale(0.02f, 0.02f, 0.02f) *
+           Matrix_Translate(-crowbarCenter.x, -crowbarCenter.y, -crowbarCenter.z);
 }
 
 int main(int argc, char *argv[])
@@ -136,6 +169,13 @@ int main(int argc, char *argv[])
         else
         {
             Player::UpdatePlayer(delta_time, InputHandler::inputState.g_UseNoclip);
+
+            if (g_GroundCrowbarAvailable && IsPlayerSteppingOnGroundCrowbar())
+            {
+                g_GroundCrowbarAvailable = false;
+                InputHandler::inputState.g_EquippedCrowbar = true;
+                printf("Crowbar picked up\n");
+            }
         }
 
         camera.Update(InputHandler::inputState, Player::playerState, dx, dy);
@@ -167,8 +207,9 @@ int main(int argc, char *argv[])
 
             if (closestObject != nullptr)
             {
-                printf("Ray hit: %s (distance: %.2f)\n",
-                       closestObject->name.c_str(), closestObjectT);
+                const glm::vec3 hitPosition = rayOrigin + rayDir * closestObjectT;
+                printf("Ray hit coordinates: x=%.3f y=%.3f z=%.3f (distance: %.2f)\n",
+                       hitPosition.x, hitPosition.y, hitPosition.z, closestObjectT);
             }
             else
             {
@@ -226,6 +267,12 @@ int main(int argc, char *argv[])
         glm::mat4 mapModel = Matrix_Scale(0.02f, 0.02f, 0.02f) * Matrix_Translate(0.0f, 0.0f, 0.0f);
         gameRenderer.SetModelMatrix(mapModel);
         gameRenderer.DrawVirtualObject("Brush", g_VirtualScene);
+
+        if (g_GroundCrowbarAvailable)
+        {
+            gameRenderer.SetModelMatrix(GetGroundCrowbarModelMatrix());
+            gameRenderer.DrawVirtualObject("crowbar", g_VirtualScene);
+        }
 
         const bool tramIntroActive = TramIntro::IsActive();
         glm::mat4 tramModel;
