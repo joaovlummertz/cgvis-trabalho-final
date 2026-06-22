@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     // Equivalent to TramIntro::GetModelMatrix() at the end of the path,
     // expressed without its local-center pivot so rendering and collision
     // hand off to the interactive tram without a visible jump.
-    const glm::vec3 tramPosition(35.36484f, -5.054f, -6.749105f);
+    const glm::vec3 tramPosition(34.36484f, -5.054f, -6.749105f);
     const float tramYaw = 1.6048247f;
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/tram.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, tramPosition, tramYaw);
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/tramDoor.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, tramPosition, tramYaw);
