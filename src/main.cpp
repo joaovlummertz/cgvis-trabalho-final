@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
     WindowManager.Init();
 
     InputHandler::Init(WindowManager.window);
+    InputHandler::inputState.g_UseFirstPersonCamera = true;
     glfwGetCursorPos(WindowManager.window, &g_LastMouseX, &g_LastMouseY);
 
     Renderer gameRenderer;
@@ -38,8 +39,11 @@ int main(int argc, char *argv[])
 
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/gordon.obj", "../../assets/SMD/", gameRenderer, g_VirtualScene, g_CollisionScene);
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/maps/fullmap.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f);
-    const glm::vec3 tramPosition(35.454f, -4.82, -4.551f);
-    const float tramYaw = 3.141592f / 2.0f;
+    // Equivalent to TramIntro::GetModelMatrix() at the end of the path,
+    // expressed without its local-center pivot so rendering and collision
+    // hand off to the interactive tram without a visible jump.
+    const glm::vec3 tramPosition(35.36484f, -5.054f, -6.749105f);
+    const float tramYaw = 1.6048247f;
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/tram.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, tramPosition, tramYaw);
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/tramDoor.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, tramPosition, tramYaw);
 
@@ -130,7 +134,7 @@ int main(int argc, char *argv[])
         glm::mat4 view = Matrix_Camera_View(camera.camera_position_c, camera.camera_view_vector, camera.camera_up_vector);
 
         float field_of_view = 3.141592f / 3.0f;
-        glm::mat4 projection = Matrix_Perspective(field_of_view, g_ScreenRatio, -0.1f, -100000.0f);
+        glm::mat4 projection = Matrix_Perspective(field_of_view, g_ScreenRatio, -0.1f, -500.0f);
 
         gameRenderer.BeginFrame(view, projection);
 

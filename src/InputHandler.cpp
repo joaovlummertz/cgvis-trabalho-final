@@ -4,11 +4,6 @@ namespace InputHandler
 {
     InputState inputState;
 
-    void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
-    {
-        inputState.g_ScrollY = yoffset;
-    }
-
     void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
     {
         // Not tracking button states for now
@@ -73,7 +68,6 @@ namespace InputHandler
         glfwSetKeyCallback(window, KeyCallback);
         glfwSetMouseButtonCallback(window, MouseButtonCallback);
         glfwSetCursorPosCallback(window, CursorPosCallback);
-        glfwSetScrollCallback(window, ScrollCallback);
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         std::cout << "Finished initializing inputStateHandler";

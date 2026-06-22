@@ -44,12 +44,6 @@ void Camera::HandleThirdPersonCamera(InputState input, PlayerState playerState, 
     g_CameraPhi += 0.01f * dy;
     Player::playerState.g_PlayerYaw = g_CameraTheta + 3.14f; // Player faces opposite to camera in third-person
 
-    // Handle scroll for camera zoom before computing camera position.
-    g_CameraDistance -= 0.1f * input.g_ScrollY;
-    const float camera_distance_min = 0.5f;
-    if (g_CameraDistance < camera_distance_min)
-        g_CameraDistance = camera_distance_min;
-
     // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2,
     // mas usamos um pequeno afastamento para evitar singularidade quando a
     // câmera ficar exatamente alinhada com o eixo Y global.
@@ -61,7 +55,7 @@ void Camera::HandleThirdPersonCamera(InputState input, PlayerState playerState, 
     if (g_CameraPhi < phimin)
         g_CameraPhi = phimin;
 
-    float r = g_CameraDistance;
+    const float r = 3.5f;
     float y = r * sin(g_CameraPhi);
     float z = r * cos(g_CameraPhi) * cos(g_CameraTheta);
     float x = r * cos(g_CameraPhi) * sin(g_CameraTheta);
@@ -72,5 +66,4 @@ void Camera::HandleThirdPersonCamera(InputState input, PlayerState playerState, 
     camera_lookat_l = playerState.g_PlayerPosition + glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
     camera_view_vector = camera_lookat_l - camera_position_c;                           // Vetor "view", sentido para onde
 
-    InputHandler::inputState.g_ScrollY = 0.0; // Reset scrolla câmera está virada
 }

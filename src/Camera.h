@@ -16,7 +16,6 @@ public:
     float eye_height = 0.6f;
     float g_CameraTheta = 0.0f;
     float g_CameraPhi = 0.0f;
-    float g_CameraDistance = 3.5f;
 
     void Update(InputState input, PlayerState playerState, float dx, float dy);
 
