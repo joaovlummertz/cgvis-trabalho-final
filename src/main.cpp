@@ -62,6 +62,22 @@ int main(int argc, char *argv[])
         "BlastDoor2", glm::vec3(0.0f), glm::vec3(0.0f, -2.6f, 0.0f));
     g_WorldEntities.push_back(blastDoor2);
 
+    SlidingDoor *glassDoor1 = new SlidingDoor(
+        "GlassDoor1", glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.7f));
+    g_WorldEntities.push_back(glassDoor1);
+
+    SlidingDoor *glassDoor2 = new SlidingDoor(
+        "GlassDoor2", glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.7f));
+    g_WorldEntities.push_back(glassDoor2);
+
+    SlidingDoor *babtechDoor = new SlidingDoor(
+        "BabtechDoor", glm::vec3(0.0f), glm::vec3(0.0f, -2.2f, 0.0f));
+    g_WorldEntities.push_back(babtechDoor);
+
+    SlidingDoor *largeDoor = new SlidingDoor(
+        "LargeDoor", glm::vec3(0.0f), glm::vec3(0.0f, -3.2f, 0.0f));
+    g_WorldEntities.push_back(largeDoor);
+
     while (!glfwWindowShouldClose(WindowManager.window))
     {
         static float previous_time = (float)glfwGetTime();
@@ -97,7 +113,30 @@ int main(int argc, char *argv[])
             glm::vec3 rayOrigin = glm::vec3(camera.camera_position_c);
             glm::vec3 rayDir = glm::normalize(glm::vec3(camera.camera_view_vector));
 
-            printf("\n raycasting \n");
+            const CollisionObject *closestObject = nullptr;
+            float closestObjectT = std::numeric_limits<float>::max();
+
+            for (const auto &object : g_CollisionScene)
+            {
+                float objectT;
+                if (Interaction::RayIntersectsAABB(
+                        rayOrigin, rayDir, object.bbox_min, object.bbox_max, objectT) &&
+                    objectT < closestObjectT)
+                {
+                    closestObjectT = objectT;
+                    closestObject = &object;
+                }
+            }
+
+            if (closestObject != nullptr)
+            {
+                printf("Ray hit: %s (distance: %.2f)\n",
+                       closestObject->name.c_str(), closestObjectT);
+            }
+            else
+            {
+                printf("Ray hit: nothing\n");
+            }
 
             // Raycast check against collision objects bound to our entities using prefix matching
             SlidingDoor *closestDoor = nullptr;
