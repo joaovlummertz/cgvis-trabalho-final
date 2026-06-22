@@ -1,19 +1,8 @@
 # J.A.C.K. 1.1.3773 Freeware MTL file
-# 222 materials
+# 178 materials
 newmtl C1A1DOOREDGE
 map_Ka c1a1dooredge.tga
 map_Kd c1a1dooredge.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl LITEPANEL1
-map_Ka litepanel1.tga
-map_Kd litepanel1.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -154,17 +143,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl +0~LAB1_CMP1
-map_Ka +0~lab1_cmp1.tga
-map_Kd +0~lab1_cmp1.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl +0~LAB1_CMP2
 map_Ka +0~lab1_cmp2.tga
 map_Kd +0~lab1_cmp2.tga
@@ -190,17 +168,6 @@ illum 2
 newmtl C1A1_TRIM2
 map_Ka c1a1_trim2.tga
 map_Kd c1a1_trim2.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl C1A0B_DR3A
-map_Ka c1a0b_dr3a.tga
-map_Kd c1a0b_dr3a.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -407,31 +374,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl +0FIFTSSTCH4
-map_Ka +0fiftsstch4.tga
-map_Kd +0fiftsstch4.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl C1A1_FLR2A
 map_Ka c1a1_flr2a.tga
 map_Kd c1a1_flr2a.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl C1A1_FLR2B
-map_Ka c1a1_flr2b.tga
-map_Kd c1a1_flr2b.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -528,17 +473,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl GENERIC67
-map_Ka generic67.tga
-map_Kd generic67.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl {GRATESTEP2
 map_Ka {gratestep2.tga
 map_Kd {gratestep2.tga
@@ -564,28 +498,6 @@ illum 2
 newmtl C1A0_LABFLRE
 map_Ka c1a0_labflre.tga
 map_Kd c1a0_labflre.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl GENERIC69
-map_Ka generic69.tga
-map_Kd generic69.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl +A~FIFTS_LGHT4
-map_Ka +a~fifts_lght4.tga
-map_Kd +a~fifts_lght4.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -704,64 +616,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl +0LAB1_COMP10B
-map_Ka +0lab1_comp10b.tga
-map_Kd +0lab1_comp10b.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl +0LAB1_COMP10C
-map_Ka +0lab1_comp10c.tga
-map_Kd +0lab1_comp10c.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl GENERIC028C
 map_Ka generic028c.tga
 map_Kd generic028c.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl ~LAB1_COMP3F
-map_Ka ~lab1_comp3f.tga
-map_Kd ~lab1_comp3f.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl PAPER8
-map_Ka paper8.tga
-map_Kd paper8.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl +AFIFTSSTCH4
-map_Ka +afiftsstch4.tga
-map_Kd +afiftsstch4.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -847,9 +704,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl C1A1_WINDOW
-map_Ka c1a1_window.tga
-map_Kd c1a1_window.tga
+newmtl {GRATE2A
+map_Ka {grate2a.tga
+map_Kd {grate2a.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -858,9 +715,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl {GRATE2A
-map_Ka {grate2a.tga
-map_Kd {grate2a.tga
+newmtl C1A1_WINDOW
+map_Ka c1a1_window.tga
+map_Kd c1a1_window.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -883,17 +740,6 @@ illum 2
 newmtl C3A2A_W1L
 map_Ka c3a2a_w1l.tga
 map_Kd c3a2a_w1l.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl DUCT_WALL02
-map_Ka duct_wall02.tga
-map_Kd duct_wall02.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -990,28 +836,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl FIFTIES_WALL12D
-map_Ka fifties_wall12d.tga
-map_Kd fifties_wall12d.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl +0~C2A4_WAV
-map_Ka +0~c2a4_wav.tga
-map_Kd +0~c2a4_wav.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl CON1_WALL01P
 map_Ka con1_wall01p.tga
 map_Kd con1_wall01p.tga
@@ -1067,64 +891,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl LAB1_PANEL2
-map_Ka lab1_panel2.tga
-map_Kd lab1_panel2.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl CRETE2_FLR03C
 map_Ka crete2_flr03c.tga
 map_Kd crete2_flr03c.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl +0~METALSTCH2
-map_Ka +0~metalstch2.tga
-map_Kd +0~metalstch2.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl LAB1_C4D2
-map_Ka lab1_c4d2.tga
-map_Kd lab1_c4d2.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl ~LAB_CRT9A
-map_Ka ~lab_crt9a.tga
-map_Kd ~lab_crt9a.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl ~LAB_CRT9B
-map_Ka ~lab_crt9b.tga
-map_Kd ~lab_crt9b.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -1144,28 +913,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl C2A4C2
-map_Ka c2a4c2.tga
-map_Kd c2a4c2.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl ~LAB_CRT9C
-map_Ka ~lab_crt9c.tga
-map_Kd ~lab_crt9c.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl LAB5_C2C
 map_Ka lab5_c2c.tga
 map_Kd lab5_c2c.tga
@@ -1177,42 +924,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl +0~FIFTS_LGHT4
-map_Ka +0~fifts_lght4.tga
-map_Kd +0~fifts_lght4.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl +A~FIFTS_LGHT01
 map_Ka +a~fifts_lght01.tga
 map_Kd +a~fifts_lght01.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl LAB1_GEAR2
-map_Ka lab1_gear2.tga
-map_Kd lab1_gear2.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl LAB1_GEAR3
-map_Ka lab1_gear3.tga
-map_Kd lab1_gear3.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -1320,17 +1034,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl FIFTSFILE1
-map_Ka fiftsfile1.tga
-map_Kd fiftsfile1.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl +ALAB1_W6
 map_Ka +alab1_w6.tga
 map_Kd +alab1_w6.tga
@@ -1364,31 +1067,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl TABLE2
-map_Ka table2.tga
-map_Kd table2.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl {RAIL2
 map_Ka {rail2.tga
 map_Kd {rail2.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl PREFAB_POT1
-map_Ka prefab_pot1.tga
-map_Kd prefab_pot1.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -1617,9 +1298,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl GENERIC015U
-map_Ka generic015u.tga
-map_Kd generic015u.tga
+newmtl C1A1A_W4A
+map_Ka c1a1a_w4a.tga
+map_Kd c1a1a_w4a.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -1628,9 +1309,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl C1A1A_W4A
-map_Ka c1a1a_w4a.tga
-map_Kd c1a1a_w4a.tga
+newmtl GENERIC015U
+map_Ka generic015u.tga
+map_Kd generic015u.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -1661,9 +1342,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl +AELEV_DOWN
-map_Ka +aelev_down.tga
-map_Kd +aelev_down.tga
+newmtl CA1X_C2D
+map_Ka ca1x_c2d.tga
+map_Kd ca1x_c2d.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -1672,9 +1353,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl CA1X_C2D
-map_Ka ca1x_c2d.tga
-map_Kd ca1x_c2d.tga
+newmtl +AELEV_DOWN
+map_Ka +aelev_down.tga
+map_Kd +aelev_down.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -1727,17 +1408,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl GENERIC108A
-map_Ka generic108a.tga
-map_Kd generic108a.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl +0~LIGHT4A
 map_Ka +0~light4a.tga
 map_Kd +0~light4a.tga
@@ -1749,31 +1419,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl POSTER12
-map_Ka poster12.tga
-map_Kd poster12.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl C1A1W1C
 map_Ka c1a1w1c.tga
 map_Kd c1a1w1c.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl POSTER13
-map_Ka poster13.tga
-map_Kd poster13.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -1796,17 +1444,6 @@ illum 2
 newmtl GENERIC006
 map_Ka generic006.tga
 map_Kd generic006.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl POSTER15
-map_Ka poster15.tga
-map_Kd poster15.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -1848,17 +1485,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl C1A1SIGN3
-map_Ka c1a1sign3.tga
-map_Kd c1a1sign3.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl C1A1W1K
 map_Ka c1a1w1k.tga
 map_Kd c1a1w1k.tga
@@ -1881,17 +1507,6 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl C3A2B_REAC2E4
-map_Ka c3a2b_reac2e4.tga
-map_Kd c3a2b_reac2e4.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl C1A1W1M
 map_Ka c1a1w1m.tga
 map_Kd c1a1w1m.tga
@@ -1903,20 +1518,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl +A~GENERIC85
-map_Ka +a~generic85.tga
-map_Kd +a~generic85.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl LAB1_COMP10A
-map_Ka lab1_comp10a.tga
-map_Kd lab1_comp10a.tga
+newmtl C3A2B_REAC2E4
+map_Ka c3a2b_reac2e4.tga
+map_Kd c3a2b_reac2e4.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -2035,9 +1639,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl C1A0_C1
-map_Ka c1a0_c1.tga
-map_Kd c1a0_c1.tga
+newmtl C1A0_LABW6
+map_Ka c1a0_labw6.tga
+map_Kd c1a0_labw6.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -2046,9 +1650,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl C1A0_LABW6
-map_Ka c1a0_labw6.tga
-map_Kd c1a0_labw6.tga
+newmtl C1A0_C1
+map_Ka c1a0_c1.tga
+map_Kd c1a0_c1.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -2115,39 +1719,6 @@ illum 2
 newmtl DRKMTLT_BORD13
 map_Ka drkmtlt_bord13.tga
 map_Kd drkmtlt_bord13.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl PICTURE4
-map_Ka picture4.tga
-map_Kd picture4.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl GLASS_BRIGHT
-map_Ka glass_bright.tga
-map_Kd glass_bright.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl PICTURE5
-map_Ka picture5.tga
-map_Kd picture5.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -2244,42 +1815,9 @@ Ns 96.000
 Ni 1.000
 d 1.000
 illum 2
-newmtl LAB1_W1
-map_Ka lab1_w1.tga
-map_Kd lab1_w1.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl LAB1_W3
-map_Ka lab1_w3.tga
-map_Kd lab1_w3.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
 newmtl +AELEV_UP
 map_Ka +aelev_up.tga
 map_Kd +aelev_up.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl LAB1_COMP3A
-map_Ka lab1_comp3a.tga
-map_Kd lab1_comp3a.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -2302,17 +1840,6 @@ illum 2
 newmtl LAB1_COMP3D
 map_Ka lab1_comp3d.tga
 map_Kd lab1_comp3d.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl -1C2A4E_W1
-map_Ka -1c2a4e_w1.tga
-map_Kd -1c2a4e_w1.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
@@ -2401,17 +1928,6 @@ illum 2
 newmtl C1A1_W1
 map_Ka c1a1_w1.tga
 map_Kd c1a1_w1.tga
-Ka 1.000 1.000 1.000
-Kd 0.800 0.800 0.800
-Ks 0.025 0.025 0.025
-Ke 0.000 0.000 0.000
-Ns 96.000
-Ni 1.000
-d 1.000
-illum 2
-newmtl C2A4X_C3
-map_Ka c2a4x_c3.tga
-map_Kd c2a4x_c3.tga
 Ka 1.000 1.000 1.000
 Kd 0.800 0.800 0.800
 Ks 0.025 0.025 0.025
