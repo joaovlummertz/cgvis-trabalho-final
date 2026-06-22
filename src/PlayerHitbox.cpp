@@ -13,6 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "InputHandler.h"
+#include "Renderer.h"
 
 GLuint LoadShader_Vertex(const char *filename);
 GLuint LoadShader_Fragment(const char *filename);
@@ -32,13 +33,14 @@ namespace
 
     void LoadDebugShadersFromFiles()
     {
-        GLuint vertex_shader_id = LoadShader_Vertex("../../src/shader_debug_vertex.glsl");
-        GLuint fragment_shader_id = LoadShader_Fragment("../../src/shader_debug_fragment.glsl");
+        Renderer renderer;
+        GLuint vertex_shader_id = renderer.LoadShader_Vertex("../../src/shader_debug_vertex.glsl");
+        GLuint fragment_shader_id = renderer.LoadShader_Fragment("../../src/shader_debug_fragment.glsl");
 
         if (g_DebugGpuProgramID != 0)
             glDeleteProgram(g_DebugGpuProgramID);
 
-        g_DebugGpuProgramID = CreateGpuProgram(vertex_shader_id, fragment_shader_id);
+        g_DebugGpuProgramID = renderer.CreateGpuProgram(vertex_shader_id, fragment_shader_id);
 
         g_debug_model_uniform = glGetUniformLocation(g_DebugGpuProgramID, "model");
         g_debug_view_uniform = glGetUniformLocation(g_DebugGpuProgramID, "view");
