@@ -25,6 +25,32 @@ double g_LastMouseX = 0.0;
 double g_LastMouseY = 0.0;
 float g_ScreenRatio = 1.0f;
 
+static glm::mat4 GetCrowbarModelMatrixFirstPerson()
+{
+    // Camera-space coordinates keep the crowbar fixed to the viewport:
+    // +X is right, +Y is up, and -Z is forward.
+    // The OBJ's geometry is offset far from its local origin, so center it
+    // before scaling and rotating it into the HUD position.
+    const glm::vec3 crowbarCenter(-10.7806295f, 33.118441f, 8.964881f);
+
+    return Matrix_Translate(0.20f, -0.12f, -0.45f) *
+           Matrix_Rotate_Z(0.12f) *
+           Matrix_Rotate_X(1.25f) *
+           Matrix_Scale(0.02f, 0.02f, 0.02f) *
+           Matrix_Translate(-crowbarCenter.x, -crowbarCenter.y, -crowbarCenter.z);
+}
+
+static glm::mat4 GetCrowbarModelMatrixThirdPerson(const PlayerState &playerState)
+{
+    glm::mat4 model = Matrix_Translate(playerState.g_PlayerPosition.x, playerState.g_PlayerPosition.y, playerState.g_PlayerPosition.z) *
+                      Matrix_Rotate_Y(playerState.g_PlayerYaw) *
+                      Matrix_Translate(0.35f, 0.84f, 0.24f) *
+                      Matrix_Rotate_Z(1.95f) *
+                      Matrix_Rotate_X(0.95f) *
+                      Matrix_Scale(0.02f, 0.02f, 0.02f);
+    return model;
+}
+
 int main(int argc, char *argv[])
 {
     Window WindowManager = Window();
@@ -37,14 +63,20 @@ int main(int argc, char *argv[])
     Renderer gameRenderer;
     gameRenderer.Initialize();
 
+    glfwPollEvents();
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/gordon.obj", "../../assets/SMD/", gameRenderer, g_VirtualScene, g_CollisionScene);
+    glfwPollEvents();
+    ModelLoader::LoadAndAddToScene("../../assets/OBJ/crowbar.obj", "../../assets/SMD/", gameRenderer, g_VirtualScene, g_CollisionScene);
+    glfwPollEvents();
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/maps/fullmap.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f);
     // Equivalent to TramIntro::GetModelMatrix() at the end of the path,
     // expressed without its local-center pivot so rendering and collision
     // hand off to the interactive tram without a visible jump.
     const glm::vec3 tramPosition(34.36484f, -5.054f, -6.749105f);
     const float tramYaw = 1.6048247f;
+    glfwPollEvents();
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/tram.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, tramPosition, tramYaw);
+    glfwPollEvents();
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/tramDoor.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, tramPosition, tramYaw);
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/zombie.obj", "../../assets/SMD/", gameRenderer, g_VirtualScene, g_CollisionScene);
 
@@ -223,8 +255,27 @@ int main(int argc, char *argv[])
             entity->Draw(gameRenderer, g_VirtualScene);
         }
 
-        // Debug hitboxes
+        // Debug hitboxes belong to the world pass.
         DrawPlayerHitbox(view, projection);
+
+        if (InputHandler::inputState.g_EquippedCrowbar)
+        {
+            glm::mat4 crowbarModel;
+            if (InputHandler::inputState.g_UseFirstPersonCamera)
+            {
+                // Render the first-person weapon as a final camera-space pass.
+                // Clearing only depth keeps it visible in front of world geometry
+                // while preserving depth between the crowbar's own triangles.
+                glClear(GL_DEPTH_BUFFER_BIT);
+                gameRenderer.BeginFrame(glm::mat4(1.0f), projection);
+                crowbarModel = GetCrowbarModelMatrixFirstPerson();
+            }
+            else
+                crowbarModel = GetCrowbarModelMatrixThirdPerson(Player::playerState);
+
+            gameRenderer.SetModelMatrix(crowbarModel);
+            gameRenderer.DrawVirtualObject("crowbar", g_VirtualScene);
+        }
 
         glfwSwapBuffers(WindowManager.window);
         glfwPollEvents();
