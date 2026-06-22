@@ -26,7 +26,7 @@ void Window::Init()
 
     // Criamos uma janela do sistema operacional, com 800 colunas e 600 linhas
     // de pixels, e com título "INF01047 ...".
-    window = glfwCreateWindow(800, 600, "INF01047 - Meia-Vida 3", NULL, NULL);
+    window = glfwCreateWindow(1600, 900, "INF01047 - Meia-Vida 3", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -45,7 +45,7 @@ void Window::Init()
     // redimensionada, por consequência alterando o tamanho do "framebuffer"
     // (região de memória onde são armazenados os pixels da imagem).
     glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
-    FramebufferSizeCallback(window, 800, 600); // Forçamos a chamada do callback acima, para definir g_ScreenRatio.
+    FramebufferSizeCallback(window, 1600, 900); // Forçamos a chamada do callback acima, para definir g_ScreenRatio.
 }
 
 void ErrorCallback(int error, const char *description)
