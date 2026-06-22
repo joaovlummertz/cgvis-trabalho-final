@@ -309,6 +309,14 @@ int main(int argc, char *argv[])
                 }),
             g_WorldEntities.end());
 
+        // Decay damage flash
+        if (Player::playerState.g_DamageFlashTimer > 0.0f)
+        {
+            Player::playerState.g_DamageFlashTimer -= delta_time * 2.0f;
+            if (Player::playerState.g_DamageFlashTimer < 0.0f)
+                Player::playerState.g_DamageFlashTimer = 0.0f;
+        }
+
         // --- Rendering ---
         gameRenderer.ClearColor(0.9f, 0.9f, 1.0f, 1.0f);
 
@@ -318,6 +326,7 @@ int main(int argc, char *argv[])
         glm::mat4 projection = Matrix_Perspective(field_of_view, g_ScreenRatio, -0.1f, -500.0f);
 
         gameRenderer.BeginFrame(view, projection);
+        gameRenderer.SetDamageFlash(Player::playerState.g_DamageFlashTimer);
 
         // Draw Player character mesh
         if (!InputHandler::inputState.g_UseFirstPersonCamera)
@@ -379,6 +388,7 @@ int main(int argc, char *argv[])
                 // while preserving depth between the crowbar's own triangles.
                 glClear(GL_DEPTH_BUFFER_BIT);
                 gameRenderer.BeginFrame(glm::mat4(1.0f), projection);
+                gameRenderer.SetDamageFlash(0.0f);
                 crowbarModel = GetCrowbarModelMatrixFirstPerson(crowbarSwing);
             }
             else

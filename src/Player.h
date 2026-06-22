@@ -13,6 +13,8 @@ struct PlayerState
     float g_PlayerVerticalVelocity = 0.0f;
     bool g_PlayerIsGrounded = false;
     glm::vec3 g_PlayerGroundNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+    int g_PlayerHealth = 5;
+    float g_DamageFlashTimer = 0.0f;
 };
 namespace Player
 {

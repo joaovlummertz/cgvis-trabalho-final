@@ -27,6 +27,7 @@ public:
     void BeginFrame(const glm::mat4 &view, const glm::mat4 &projection);
     void DrawVirtualObject(const char *prefix, const std::map<std::string, SceneObject> &virtualScene);
     void SetModelMatrix(const glm::mat4 &model);
+    void SetDamageFlash(float amount);
 
     // Getters
     GLuint GetGpuProgramID() const { return m_GpuProgramID; }
@@ -52,6 +53,7 @@ private:
     GLint m_material_kd_uniform;
     GLint m_material_ks_uniform;
     GLint m_material_shininess_uniform;
+    GLint m_damage_flash_uniform;
     std::vector<GLuint> m_TextureIDs;
     std::vector<GLuint> m_SamplerIDs;
 };

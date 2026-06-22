@@ -437,6 +437,15 @@ void ChasingZombie::Update(float deltaTime)
 
     if (horizontalDistance <= kZombieAttackRange)
     {
+        m_AttackCooldown -= deltaTime;
+        if (m_AttackCooldown <= 0.0f)
+        {
+            m_AttackCooldown = 1.5f;
+            Player::playerState.g_PlayerHealth--;
+            Player::playerState.g_DamageFlashTimer = 1.0f;
+            printf("Player hit! Health remaining: %d\n", Player::playerState.g_PlayerHealth);
+        }
+
         velocity = glm::vec3(0.0f);
         modelMatrix = Matrix_Translate(position.x, position.y, position.z) *
                       Matrix_Rotate_Y(yaw) *
@@ -444,6 +453,8 @@ void ChasingZombie::Update(float deltaTime)
         SynchronizeCollisionGeometry();
         return;
     }
+
+    m_AttackCooldown = 0.0f;
 
     velocity.y -= kZombieGravity * deltaTime;
     if (velocity.y < -kZombieMaxFallSpeed)

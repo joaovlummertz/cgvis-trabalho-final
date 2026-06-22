@@ -153,6 +153,11 @@ void Renderer::SetModelMatrix(const glm::mat4 &model)
     glUniformMatrix4fv(m_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
 }
 
+void Renderer::SetDamageFlash(float amount)
+{
+    glUniform1f(m_damage_flash_uniform, amount);
+}
+
 void Renderer::DrawVirtualObject(const char *prefix, const std::map<std::string, SceneObject> &virtualScene)
 {
     const std::string family(prefix);
@@ -238,6 +243,7 @@ void Renderer::LoadShaders()
     m_material_kd_uniform = glGetUniformLocation(m_GpuProgramID, "material_kd");
     m_material_ks_uniform = glGetUniformLocation(m_GpuProgramID, "material_ks");
     m_material_shininess_uniform = glGetUniformLocation(m_GpuProgramID, "material_shininess");
+    m_damage_flash_uniform = glGetUniformLocation(m_GpuProgramID, "damage_flash");
 
     // Default lighting settings
     glUseProgram(m_GpuProgramID);

@@ -77,6 +77,7 @@ public:
     bool awake = false;
     int health = 3;
     bool isDead = false;
+    float m_AttackCooldown = 0.0f;
 
     ChasingZombie(std::string meshName, glm::vec3 startPos, float speed = 1.8f, float scale = 0.02f);
 
