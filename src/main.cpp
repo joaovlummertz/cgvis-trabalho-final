@@ -40,8 +40,9 @@
 #include "PlayerHitbox.h"
 #include "PlayerHitbox.h"
 #include "Camera.h"
-#include "InputHandler.h"
+#include "Renderer.h"
 #include "Window.h"
+
 struct ObjModel
 {
     tinyobj::attrib_t attrib;
@@ -90,87 +91,41 @@ struct ObjModel
     }
 };
 
-// Declaração de funções utilizadas para pilha de matrizes de modelagem.
-void PushMatrix(glm::mat4 M);
-void PopMatrix(glm::mat4 &M);
-
-void BuildTrianglesAndAddToVirtualScene(ObjModel *, const std::string &basepath, bool build_collision = false, float collision_scale = 1.0f); // Constrói representação de um ObjModel como malha de triângulos para renderização
-void LoadShadersFromFiles();                                                                                                                  // Carrega os shaders de vértice e fragmento, criando um programa de GPU
-GLuint LoadTextureImage(const char *filename);                                                                                                // Função que carrega imagens de textura
-void DrawVirtualObject(const char *object_name);                                                                                              // Desenha um objeto armazenado em g_VirtualScene
-GLuint LoadShader_Vertex(const char *filename);                                                                                               // Carrega um vertex shader
-GLuint LoadShader_Fragment(const char *filename);                                                                                             // Carrega um fragment shader
-void LoadShader(const char *filename, GLuint shader_id);                                                                                      // Função utilizada pelas duas acima
-GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id);                                                                  // Cria um programa de GPU                                                                                                      // Função para debugging
-
-// Abaixo definimos variáveis globais utilizadas em várias funções do código.
-
-// Mouse tracking for camera updates
-double g_LastMouseX = 0.0;
-double g_LastMouseY = 0.0;
+void BuildTrianglesAndAddToVirtualScene(ObjModel *, const std::string &basepath, Renderer *renderer, bool build_collision = false, float collision_scale = 1.0f);
 
 std::map<std::string, SceneObject> g_VirtualScene;
 std::vector<CollisionObject> g_CollisionScene;
-
-std::stack<glm::mat4> g_MatrixStack; // usar mais
-
+double g_LastMouseX = 0.0;
+double g_LastMouseY = 0.0;
 float g_ScreenRatio = 1.0f;
-
-// Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
-GLuint g_GpuProgramID = 0;
-GLint g_model_uniform;
-GLint g_view_uniform;
-GLint g_projection_uniform;
-GLint g_object_id_uniform;
-GLint g_bbox_min_uniform;
-GLint g_bbox_max_uniform;
-GLint g_has_texture_uniform;
-GLint g_light_position_uniform;
-GLint g_light_color_uniform;
-GLint g_ambient_color_uniform;
-GLint g_material_ka_uniform;
-GLint g_material_kd_uniform;
-GLint g_material_ks_uniform;
-GLint g_material_shininess_uniform;
 
 int main(int argc, char *argv[])
 {
     Window WindowManager = Window();
-
     WindowManager.Init();
 
-    // pega informações de inputs do usuário
     InputHandler::Init(WindowManager.window);
 
-    LoadShadersFromFiles();
+    // Instantiate and clear out the monolith!
+    Renderer gameRenderer;
+    gameRenderer.Initialize();
 
-    // Construímos a representação de objetos geométricos através de malhas de triângulos
-
+    // Asset Loading
     ObjModel playermodel("../../assets/OBJ/gordon.obj");
-    BuildTrianglesAndAddToVirtualScene(&playermodel, "../../assets/SMD/");
+    BuildTrianglesAndAddToVirtualScene(&playermodel, "../../assets/SMD/", &gameRenderer);
 
     ObjModel mapmodel("../../assets/OBJ/maps/fullmap.obj");
-    BuildTrianglesAndAddToVirtualScene(&mapmodel, "../../assets/textures/", true, 0.02f);
+    BuildTrianglesAndAddToVirtualScene(&mapmodel, "../../assets/textures/", &gameRenderer, true, 0.02f);
 
     ObjModel trammodel("../../assets/OBJ/tram.obj");
-    BuildTrianglesAndAddToVirtualScene(&trammodel, "../../assets/textures/");
+    BuildTrianglesAndAddToVirtualScene(&trammodel, "../../assets/textures/", &gameRenderer);
 
     ObjModel tramdoormodel("../../assets/OBJ/tramDoor.obj");
-    BuildTrianglesAndAddToVirtualScene(&tramdoormodel, "../../assets/textures/");
+    BuildTrianglesAndAddToVirtualScene(&tramdoormodel, "../../assets/textures/", &gameRenderer);
 
     InitPlayerHitbox();
+    Camera camera;
 
-    Camera Camera;
-
-    // Habilitamos o Z-buffer. Veja slides 104-116 do documento Aula_09_Projecoes.pdf.
-    glEnable(GL_DEPTH_TEST);
-
-    // Habilitamos o Backface Culling.
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
-
-    // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(WindowManager.window))
     {
         static float previous_time = (float)glfwGetTime();
@@ -178,13 +133,9 @@ int main(int argc, char *argv[])
         float delta_time = current_time - previous_time;
         previous_time = current_time;
 
+        // Systems Updates
         Player::UpdatePlayer(delta_time, InputHandler::inputState.g_UseNoclip);
-        // printf("Player position: (%.3f, %.3f, %.3f)\n",
-        //        Player::playerState.g_PlayerPosition.x,
-        //        Player::playerState.g_PlayerPosition.y,
-        //        Player::playerState.g_PlayerPosition.z);
 
-        // Compute mouse movement delta
         double mouseX = InputHandler::inputState.g_MouseX;
         double mouseY = InputHandler::inputState.g_MouseY;
         double dx = mouseX - g_LastMouseX;
@@ -192,216 +143,45 @@ int main(int argc, char *argv[])
         g_LastMouseX = mouseX;
         g_LastMouseY = mouseY;
 
-        // Update camera angles based on mouse movement
+        camera.Update(InputHandler::inputState, Player::playerState, dx, dy);
 
-        Camera.Update(InputHandler::inputState, Player::playerState, dx, dy);
+        // --- RENDER PASS ---
+        gameRenderer.ClearColor(0.9f, 0.9f, 1.0f, 1.0f);
 
-        // Aqui executamos as operações de renderização
+        glm::mat4 view = Matrix_Camera_View(camera.camera_position_c, camera.camera_view_vector, camera.camera_up_vector);
+        float field_of_view = 3.141592f / 3.0f;
+        glm::mat4 projection = Matrix_Perspective(field_of_view, g_ScreenRatio, -0.1f, -100000.0f);
 
-        // Definimos a cor do "fundo" do framebuffer como branco.
-        //
-        //           R     G     B     A
-        glClearColor(0.9f, 0.9f, 1.0f, 1.0f);
+        gameRenderer.BeginFrame(view, projection);
 
-        // "Pintamos" todos os pixels do framebuffer com a cor definida acima,
-        // e também resetamos todos os pixels do Z-buffer (depth buffer).
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Pedimos para a GPU utilizar o programa de GPU criado acima (contendo
-        // os shaders de vértice e fragmentos).
-        glUseProgram(g_GpuProgramID);
-
-        glm::mat4 view = Matrix_Camera_View(Camera.camera_position_c, Camera.camera_view_vector, Camera.camera_up_vector);
-        glm::mat4 projection;
-
-        float nearplane = -0.1f;     // Posição do "near plane"
-        float farplane = -100000.0f; // Posição do "far plane"
-
-        // Projeção Perspectiva.
-        // Para definição do field of view (FOV), veja slides 205-215 do documento Aula_09_Projecoes.pdf.
-        float field_of_view = 3.141592 / 3.0f;
-        projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
-
-        glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
-
-        // Enviamos as matrizes "view" e "projection" para a placa de vídeo
-        // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
-        // efetivamente aplicadas em todos os pontos.
-        glUniformMatrix4fv(g_view_uniform, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(g_projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
-
-        // Desenhamos o modelo do player
+        // Draw Player
         if (!InputHandler::inputState.g_UseFirstPersonCamera)
         {
-            model = Matrix_Translate(Player::playerState.g_PlayerPosition.x, Player::playerState.g_PlayerPosition.y, Player::playerState.g_PlayerPosition.z) * Matrix_Rotate_Y(Player::playerState.g_PlayerYaw) * Matrix_Scale(0.02f, 0.02f, 0.02f);
-            glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            DrawVirtualObject("Gordon_Hi");
+            glm::mat4 model = Matrix_Translate(Player::playerState.g_PlayerPosition.x, Player::playerState.g_PlayerPosition.y, Player::playerState.g_PlayerPosition.z) * Matrix_Rotate_Y(Player::playerState.g_PlayerYaw) * Matrix_Scale(0.02f, 0.02f, 0.02f);
+            gameRenderer.SetModelMatrix(model);
+            gameRenderer.DrawVirtualObject("Gordon_Hi", g_VirtualScene);
         }
 
-        // Desenhamos o mapa
-        model = Matrix_Scale(0.02f, 0.02f, 0.02f) * Matrix_Translate(0.0f, 0.0f, 0.0f);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        // Draw Map environment structures
+        glm::mat4 mapModel = Matrix_Scale(0.02f, 0.02f, 0.02f) * Matrix_Translate(0.0f, 0.0f, 0.0f);
+        gameRenderer.SetModelMatrix(mapModel);
 
-        DrawVirtualObject("Brush"); // O arquivo OBJ do mapa é definido por uma coleção de objetos chamados 'Brush'. Isso é assim pois é a maneira como a ferramente J.A.C.K exporta os mapas.
+        gameRenderer.DrawVirtualObject("Brush", g_VirtualScene);
+        gameRenderer.DrawVirtualObject("Tram", g_VirtualScene);
+        gameRenderer.DrawVirtualObject("TramDoor", g_VirtualScene);
 
-        DrawVirtualObject("Tram");
-
-        DrawVirtualObject("TramDoor");
-
+        // Debug hitboxes
         DrawPlayerHitbox(view, projection);
 
-        // O framebuffer onde OpenGL executa as operações de renderização não
-        // é o mesmo que está sendo mostrado para o usuário, caso contrário
-        // seria possível ver artefatos conhecidos como "screen tearing". A
-        // chamada abaixo faz a troca dos buffers, mostrando para o usuário
-        // tudo que foi renderizado pelas funções acima.
-        // Veja o link: https://en.wikipedia.org/w/index.php?title=Multiple_buffering&oldid=793452829#Double_buffering_in_computer_graphics
         glfwSwapBuffers(WindowManager.window);
         glfwPollEvents();
     }
 
-    // Finalizamos o uso dos recursos do sistema operacional
     glfwTerminate();
-
-    // Fim do programa
     return 0;
 }
 
-// Função que carrega uma imagem para ser utilizada como textura
-GLuint LoadTextureImage(const char *filename)
-{
-    // Primeiro fazemos a leitura da imagem do disco
-    stbi_set_flip_vertically_on_load(true);
-    int width;
-    int height;
-    int channels;
-    unsigned char *data = stbi_load(filename, &width, &height, &channels, 3);
-
-    if (data == NULL)
-    {
-        fprintf(stderr, "ERROR: Cannot open image file \"%s\".\n", filename);
-        std::exit(EXIT_FAILURE);
-    }
-
-    // Agora criamos objetos na GPU com OpenGL para armazenar a textura
-    GLuint texture_id;
-    GLuint sampler_id;
-    glGenTextures(1, &texture_id);
-    glGenSamplers(1, &sampler_id);
-
-    // Veja slides 95-96 do documento Aula_20_Mapeamento_de_Texturas.pdf
-    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // Parâmetros de amostragem da textura.
-    glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glSamplerParameteri(sampler_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // Agora enviamos a imagem lida do disco para a GPU
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glBindSampler(0, sampler_id);
-
-    stbi_image_free(data);
-
-    return (texture_id);
-}
-
-void DrawVirtualObject(const char *prefix)
-{
-    for (auto &pair : g_VirtualScene)
-    {
-        if (pair.first.find(prefix) == std::string::npos)
-            continue;
-
-        SceneObject &obj = pair.second;
-
-        glBindVertexArray(obj.vertex_array_object_id);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, obj.texture_id);
-        glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage"), 0);
-        glUniform1i(g_has_texture_uniform, obj.texture_id != 0 ? 1 : 0);
-
-        glDrawElements(obj.rendering_mode, obj.num_indices, GL_UNSIGNED_INT,
-                       (void *)(obj.first_index * sizeof(GLuint)));
-
-        glBindVertexArray(0);
-    }
-}
-
-void LoadShadersFromFiles()
-{
-    GLuint vertex_shader_id = LoadShader_Vertex("../../src/shader_vertex.glsl");
-    GLuint fragment_shader_id = LoadShader_Fragment("../../src/shader_fragment.glsl");
-
-    // Deletamos o programa de GPU anterior, caso ele exista.
-    if (g_GpuProgramID != 0)
-        glDeleteProgram(g_GpuProgramID);
-
-    // Criamos um programa de GPU utilizando os shaders carregados acima.
-    g_GpuProgramID = CreateGpuProgram(vertex_shader_id, fragment_shader_id);
-
-    // Buscamos o endereço das variáveis definidas dentro do Vertex Shader.
-    // Utilizaremos estas variáveis para enviar dados para a placa de vídeo
-    // (GPU)! Veja arquivo "shader_vertex.glsl" e "shader_fragment.glsl".
-    g_model_uniform = glGetUniformLocation(g_GpuProgramID, "model");           // Variável da matriz "model"
-    g_view_uniform = glGetUniformLocation(g_GpuProgramID, "view");             // Variável da matriz "view" em shader_vertex.glsl
-    g_projection_uniform = glGetUniformLocation(g_GpuProgramID, "projection"); // Variável da matriz "projection" em shader_vertex.glsl
-    g_bbox_min_uniform = glGetUniformLocation(g_GpuProgramID, "bbox_min");
-    g_bbox_max_uniform = glGetUniformLocation(g_GpuProgramID, "bbox_max");
-    g_has_texture_uniform = glGetUniformLocation(g_GpuProgramID, "hasTexture");
-    g_light_position_uniform = glGetUniformLocation(g_GpuProgramID, "light_position");
-    g_light_color_uniform = glGetUniformLocation(g_GpuProgramID, "light_color");
-    g_ambient_color_uniform = glGetUniformLocation(g_GpuProgramID, "ambient_color");
-    g_material_ka_uniform = glGetUniformLocation(g_GpuProgramID, "material_ka");
-    g_material_kd_uniform = glGetUniformLocation(g_GpuProgramID, "material_kd");
-    g_material_ks_uniform = glGetUniformLocation(g_GpuProgramID, "material_ks");
-    g_material_shininess_uniform = glGetUniformLocation(g_GpuProgramID, "material_shininess");
-
-    // Variáveis em "shader_fragment.glsl" para acesso das imagens de textura
-    glUseProgram(g_GpuProgramID);
-    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage0"), 0);
-    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage1"), 1);
-    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage2"), 2);
-    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage3"), 3);
-    glUniform3f(g_light_position_uniform, 20.0f, 30.0f, 25.0f);
-    glUniform3f(g_light_color_uniform, 1.0f, 0.98f, 0.92f);
-    glUniform3f(g_ambient_color_uniform, 0.18f, 0.18f, 0.22f);
-    glUniform3f(g_material_ka_uniform, 0.45f, 0.45f, 0.45f);
-    glUniform3f(g_material_kd_uniform, 1.0f, 1.0f, 1.0f);
-    glUniform3f(g_material_ks_uniform, 0.35f, 0.35f, 0.35f);
-    glUniform1f(g_material_shininess_uniform, 32.0f);
-    glUseProgram(0);
-}
-
-// Função que pega a matriz M e guarda a mesma no topo da pilha
-void PushMatrix(glm::mat4 M)
-{
-    g_MatrixStack.push(M);
-}
-
-// Função que remove a matriz atualmente no topo da pilha e armazena a mesma na variável M
-void PopMatrix(glm::mat4 &M)
-{
-    if (g_MatrixStack.empty())
-    {
-        M = Matrix_Identity();
-    }
-    else
-    {
-        M = g_MatrixStack.top();
-        g_MatrixStack.pop();
-    }
-}
-
-void BuildTrianglesAndAddToVirtualScene(ObjModel *model, const std::string &basepath, bool build_collision, float collision_scale)
+void BuildTrianglesAndAddToVirtualScene(ObjModel *model, const std::string &basepath, Renderer *renderer, bool build_collision, float collision_scale)
 {
     GLuint vertex_array_object_id;
     glGenVertexArrays(1, &vertex_array_object_id);
@@ -430,7 +210,7 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model, const std::string &base
             const std::string &texname = model->materials[mat_id].diffuse_texname;
 
             if (!texname.empty())
-                tex_id = LoadTextureImage((basepath + texname).c_str());
+                tex_id = renderer->LoadTextureImage((basepath + texname).c_str());
         }
 
         std::vector<glm::vec3> shape_vertices;
@@ -563,156 +343,4 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model, const std::string &base
     // "Desligamos" o VAO, evitando assim que operações posteriores venham a
     // alterar o mesmo. Isso evita bugs.
     glBindVertexArray(0);
-}
-
-// Carrega um Vertex Shader de um arquivo GLSL. Veja definição de LoadShader() abaixo.
-GLuint LoadShader_Vertex(const char *filename)
-{
-    // Criamos um identificador (ID) para este shader, informando que o mesmo
-    // será aplicado nos vértices.
-    GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
-
-    // Carregamos e compilamos o shader
-    LoadShader(filename, vertex_shader_id);
-
-    // Retorna o ID gerado acima
-    return vertex_shader_id;
-}
-
-// Carrega um Fragment Shader de um arquivo GLSL . Veja definição de LoadShader() abaixo.
-GLuint LoadShader_Fragment(const char *filename)
-{
-    // Criamos um identificador (ID) para este shader, informando que o mesmo
-    // será aplicado nos fragmentos.
-    GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
-
-    // Carregamos e compilamos o shader
-    LoadShader(filename, fragment_shader_id);
-
-    // Retorna o ID gerado acima
-    return fragment_shader_id;
-}
-
-// Função auxilar, utilizada pelas duas funções acima. Carrega código de GPU de
-// um arquivo GLSL e faz sua compilação.
-void LoadShader(const char *filename, GLuint shader_id)
-{
-    // Lemos o arquivo de texto indicado pela variável "filename"
-    // e colocamos seu conteúdo em memória, apontado pela variável
-    // "shader_string".
-    std::ifstream file;
-    try
-    {
-        file.exceptions(std::ifstream::failbit);
-        file.open(filename);
-    }
-    catch (std::exception &e)
-    {
-        fprintf(stderr, "ERROR: Cannot open file \"%s\".\n", filename);
-        std::exit(EXIT_FAILURE);
-    }
-    std::stringstream shader;
-    shader << file.rdbuf();
-    std::string str = shader.str();
-    const GLchar *shader_string = str.c_str();
-    const GLint shader_string_length = static_cast<GLint>(str.length());
-
-    // Define o código do shader GLSL, contido na string "shader_string"
-    glShaderSource(shader_id, 1, &shader_string, &shader_string_length);
-
-    // Compila o código do shader GLSL (em tempo de execução)
-    glCompileShader(shader_id);
-
-    // Verificamos se ocorreu algum erro ou "warning" durante a compilação
-    GLint compiled_ok;
-    glGetShaderiv(shader_id, GL_COMPILE_STATUS, &compiled_ok);
-
-    GLint log_length = 0;
-    glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &log_length);
-
-    // Alocamos memória para guardar o log de compilação.
-    // A chamada "new" em C++ é equivalente ao "malloc()" do C.
-    GLchar *log = new GLchar[log_length];
-    glGetShaderInfoLog(shader_id, log_length, &log_length, log);
-
-    // Imprime no terminal qualquer erro ou "warning" de compilação
-    if (log_length != 0)
-    {
-        std::string output;
-
-        if (!compiled_ok)
-        {
-            output += "ERROR: OpenGL compilation of \"";
-            output += filename;
-            output += "\" failed.\n";
-            output += "== Start of compilation log\n";
-            output += log;
-            output += "== End of compilation log\n";
-        }
-        else
-        {
-            output += "WARNING: OpenGL compilation of \"";
-            output += filename;
-            output += "\".\n";
-            output += "== Start of compilation log\n";
-            output += log;
-            output += "== End of compilation log\n";
-        }
-
-        fprintf(stderr, "%s", output.c_str());
-    }
-
-    // A chamada "delete" em C++ é equivalente ao "free()" do C
-    delete[] log;
-}
-
-// Esta função cria um programa de GPU, o qual contém obrigatoriamente um
-// Vertex Shader e um Fragment Shader.
-GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id)
-{
-    // Criamos um identificador (ID) para este programa de GPU
-    GLuint program_id = glCreateProgram();
-
-    // Definição dos dois shaders GLSL que devem ser executados pelo programa
-    glAttachShader(program_id, vertex_shader_id);
-    glAttachShader(program_id, fragment_shader_id);
-
-    // Linkagem dos shaders acima ao programa
-    glLinkProgram(program_id);
-
-    // Verificamos se ocorreu algum erro durante a linkagem
-    GLint linked_ok = GL_FALSE;
-    glGetProgramiv(program_id, GL_LINK_STATUS, &linked_ok);
-
-    // Imprime no terminal qualquer erro de linkagem
-    if (linked_ok == GL_FALSE)
-    {
-        GLint log_length = 0;
-        glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &log_length);
-
-        // Alocamos memória para guardar o log de compilação.
-        // A chamada "new" em C++ é equivalente ao "malloc()" do C.
-        GLchar *log = new GLchar[log_length];
-
-        glGetProgramInfoLog(program_id, log_length, &log_length, log);
-
-        std::string output;
-
-        output += "ERROR: OpenGL linking of program failed.\n";
-        output += "== Start of link log\n";
-        output += log;
-        output += "\n== End of link log\n";
-
-        // A chamada "delete" em C++ é equivalente ao "free()" do C
-        delete[] log;
-
-        fprintf(stderr, "%s", output.c_str());
-    }
-
-    // Os "Shader Objects" podem ser marcados para deleção após serem linkados
-    glDeleteShader(vertex_shader_id);
-    glDeleteShader(fragment_shader_id);
-
-    // Retornamos o ID gerado acima
-    return program_id;
 }
