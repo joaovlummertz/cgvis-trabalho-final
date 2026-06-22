@@ -6,7 +6,8 @@ namespace InputHandler
 
     void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
     {
-        // Not tracking button states for now
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+            inputState.g_CrowbarAttackRequested = true;
     }
 
     void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)

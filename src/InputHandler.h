@@ -18,6 +18,7 @@ struct InputState
     bool g_EquippedCrowbar = false;
     bool g_UseNoclip = false;
     bool g_interact = false;
+    bool g_CrowbarAttackRequested = false;
     double g_MouseX = 0.0;
     double g_MouseY = 0.0;
 };
