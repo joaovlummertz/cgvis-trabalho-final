@@ -69,7 +69,10 @@ void main()
     vec3 base_color = vec3(1.0);
     if (hasTexture)
     {
-        base_color = texture(TextureImage, texcoords).rgb;
+        vec4 texel = texture(TextureImage, texcoords);
+        if (texel.a < 0.5)
+            discard;
+        base_color = texel.rgb;
     }
 
     vec3 ambient = ambient_color * material_ka * base_color;
