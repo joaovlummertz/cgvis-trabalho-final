@@ -43,6 +43,9 @@ namespace InputHandler
         if (key == GLFW_KEY_LEFT_SHIFT)
             inputState.g_MoveDownPressed = pressed;
 
+        if (key == GLFW_KEY_E)
+            inputState.g_interact = action == GLFW_PRESS;
+
         // Se o usuário pressionar a tecla ESC, fechamos a janela.
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
             glfwSetWindowShouldClose(window, GL_TRUE);

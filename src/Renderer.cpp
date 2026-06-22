@@ -3,15 +3,49 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
+#include <cctype>
 #include <stb_image.h>
+
+namespace
+{
+    bool MatchesObjectFamily(const std::string &objectName, const std::string &family)
+    {
+        if (objectName.compare(0, family.size(), family) != 0)
+            return false;
+
+        if (objectName.size() == family.size())
+            return true;
+
+        const unsigned char suffixStart = static_cast<unsigned char>(objectName[family.size()]);
+        return std::isdigit(suffixStart) || suffixStart == '-' || suffixStart == '_';
+    }
+}
 
 Renderer::Renderer() : m_GpuProgramID(0) {}
 
 Renderer::~Renderer()
 {
+    Shutdown();
+}
+
+void Renderer::Shutdown()
+{
+    if (!m_TextureIDs.empty())
+    {
+        glDeleteTextures(static_cast<GLsizei>(m_TextureIDs.size()), m_TextureIDs.data());
+        m_TextureIDs.clear();
+    }
+
+    if (!m_SamplerIDs.empty())
+    {
+        glDeleteSamplers(static_cast<GLsizei>(m_SamplerIDs.size()), m_SamplerIDs.data());
+        m_SamplerIDs.clear();
+    }
+
     if (m_GpuProgramID != 0)
     {
         glDeleteProgram(m_GpuProgramID);
+        m_GpuProgramID = 0;
     }
 }
 
@@ -46,9 +80,10 @@ void Renderer::SetModelMatrix(const glm::mat4 &model)
 
 void Renderer::DrawVirtualObject(const char *prefix, const std::map<std::string, SceneObject> &virtualScene)
 {
+    const std::string family(prefix);
     for (const auto &pair : virtualScene)
     {
-        if (pair.first.find(prefix) == std::string::npos)
+        if (!MatchesObjectFamily(pair.first, family))
             continue;
 
         const SceneObject &obj = pair.second;
@@ -95,6 +130,8 @@ GLuint Renderer::LoadTextureImage(const char *filename)
     glBindSampler(0, sampler_id);
 
     stbi_image_free(data);
+    m_TextureIDs.push_back(texture_id);
+    m_SamplerIDs.push_back(sampler_id);
     return texture_id;
 }
 
@@ -125,7 +162,7 @@ void Renderer::LoadShaders()
 
     // Default lighting settings
     glUseProgram(m_GpuProgramID);
-    glUniform1i(glGetUniformLocation(m_GpuProgramID, "TextureImage0"), 0);
+    glUniform1i(glGetUniformLocation(m_GpuProgramID, "TextureImage"), 0);
     glUniform3f(m_light_position_uniform, 20.0f, 30.0f, 25.0f);
     glUniform3f(m_light_color_uniform, 1.0f, 0.98f, 0.92f);
     glUniform3f(m_ambient_color_uniform, 0.18f, 0.18f, 0.22f);

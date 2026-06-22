@@ -19,6 +19,7 @@ set(SOURCES
   src/Renderer.cpp
   src/ModelLoader.cpp
   src/TramIntro.cpp
+  src/Entity.cpp
 
 )
 

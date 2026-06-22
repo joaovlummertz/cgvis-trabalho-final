@@ -132,6 +132,33 @@ void InitPlayerHitbox()
     glBindVertexArray(0);
 }
 
+void CleanupPlayerHitbox()
+{
+    if (g_PlayerHitboxEBO != 0)
+    {
+        glDeleteBuffers(1, &g_PlayerHitboxEBO);
+        g_PlayerHitboxEBO = 0;
+    }
+
+    if (g_PlayerHitboxVBOPositions != 0)
+    {
+        glDeleteBuffers(1, &g_PlayerHitboxVBOPositions);
+        g_PlayerHitboxVBOPositions = 0;
+    }
+
+    if (g_PlayerHitboxVAO != 0)
+    {
+        glDeleteVertexArrays(1, &g_PlayerHitboxVAO);
+        g_PlayerHitboxVAO = 0;
+    }
+
+    if (g_DebugGpuProgramID != 0)
+    {
+        glDeleteProgram(g_DebugGpuProgramID);
+        g_DebugGpuProgramID = 0;
+    }
+}
+
 void DrawPlayerHitbox(glm::mat4 view, glm::mat4 projection)
 {
     if (InputHandler::inputState.g_UseFirstPersonCamera || !InputHandler::inputState.g_ShowHitbox)

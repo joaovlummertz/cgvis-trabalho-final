@@ -1,6 +1,7 @@
 #include "Player.h"
 
 #include <cmath>
+#include <cstdio>
 #include <glm/gtx/norm.hpp>
 #include <map>
 #include <string>
@@ -210,6 +211,10 @@ namespace Player
 
             playerState.g_PlayerPosition = current_pos;
             playerState.g_PlayerPosition.w = 1.0f;
+            printf("Player position: x=%.3f y=%.3f z=%.3f\n",
+                   playerState.g_PlayerPosition.x,
+                   playerState.g_PlayerPosition.y,
+                   playerState.g_PlayerPosition.z);
         }
     }
 } // namespace Player
