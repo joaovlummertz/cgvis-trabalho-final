@@ -17,6 +17,7 @@ set(SOURCES
   src/Camera.cpp
   src/Window.cpp
   src/Renderer.cpp
+  src/ModelLoader.cpp
 
 )
 
