@@ -13,7 +13,7 @@ public:
     glm::vec4 camera_lookat_l;
     glm::vec4 camera_view_vector;
     glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
-    float eye_height = 0.6f;
+    float eye_height = 1.0f;
     float g_CameraTheta = 0.0f;
     float g_CameraPhi = 0.0f;
 
