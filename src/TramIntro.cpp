@@ -18,6 +18,7 @@ namespace
     constexpr float kTramScale = 0.02f;
     constexpr float kTramIntroDuration = 24.0f;
     constexpr float kTramHeadingOffset = 3.141592f / 2.0f;
+    constexpr float kTramYawSmoothingRate = 2.5f;
     const glm::vec3 kTramPassengerOffset = glm::vec3(0.0f, -0.55f, 0.0f);
 
     struct State
@@ -26,6 +27,7 @@ namespace
         bool previous_first_person_camera = false;
         float elapsed = 0.0f;
         float current_t = 0.0f;
+        float current_yaw = 0.0f;
         std::vector<glm::vec3> path_points;
         glm::vec3 tram_local_center = glm::vec3(0.0f);
         glm::vec3 current_position = glm::vec3(0.0f);
@@ -63,6 +65,28 @@ namespace
         return v / len;
     }
 
+    float WrapAngle(float angle)
+    {
+        const float pi = 3.141592f;
+        const float two_pi = 6.283184f;
+
+        while (angle > pi)
+            angle -= two_pi;
+        while (angle < -pi)
+            angle += two_pi;
+        return angle;
+    }
+
+    float ApproachAngle(float current, float target, float max_delta)
+    {
+        float delta = WrapAngle(target - current);
+        if (delta > max_delta)
+            delta = max_delta;
+        else if (delta < -max_delta)
+            delta = -max_delta;
+        return current + delta;
+    }
+
     void EvaluateTramPath(float t, glm::vec3 &position, glm::vec3 &tangent)
     {
         const std::vector<glm::vec3> &points = g_State.path_points;
@@ -98,13 +122,10 @@ namespace
         tangent = CubicBezierTangent(p0, p1, p2, p3, local_t);
     }
 
-    glm::mat4 BuildModelMatrix(const glm::vec3 &tram_position, const glm::vec3 &tram_tangent)
+    glm::mat4 BuildModelMatrix(const glm::vec3 &tram_position)
     {
-        glm::vec3 tangent = NormalizeOrFallback(tram_tangent, glm::vec3(0.0f, 0.0f, 1.0f));
-        float yaw = std::atan2(tangent.x, tangent.z) + kTramHeadingOffset;
-
         return glm::translate(glm::mat4(1.0f), tram_position) *
-               glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 1.0f, 0.0f)) *
+               glm::rotate(glm::mat4(1.0f), g_State.current_yaw, glm::vec3(0.0f, 1.0f, 0.0f)) *
                glm::scale(glm::mat4(1.0f), glm::vec3(kTramScale, kTramScale, kTramScale)) *
                glm::translate(glm::mat4(1.0f), -g_State.tram_local_center);
     }
@@ -134,6 +155,7 @@ void Initialize()
 
     EvaluateTramPath(0.0f, g_State.current_position, g_State.current_tangent);
     glm::vec3 initial_forward = NormalizeOrFallback(g_State.current_tangent, glm::vec3(0.0f, 0.0f, 1.0f));
+    g_State.current_yaw = std::atan2(initial_forward.x, initial_forward.z) + kTramHeadingOffset;
     Player::playerState.g_PlayerPosition = glm::vec4(g_State.path_points.front(), 1.0f);
     Player::playerState.g_PlayerYaw = std::atan2(initial_forward.x, initial_forward.z);
     Player::playerState.g_PlayerPitch = 0.0f;
@@ -153,6 +175,9 @@ void Update(float delta_time)
     g_State.current_t = t;
 
     EvaluateTramPath(t, g_State.current_position, g_State.current_tangent);
+    glm::vec3 forward = NormalizeOrFallback(g_State.current_tangent, glm::vec3(0.0f, 0.0f, 1.0f));
+    float target_yaw = std::atan2(forward.x, forward.z) + kTramHeadingOffset;
+    g_State.current_yaw = ApproachAngle(g_State.current_yaw, target_yaw, kTramYawSmoothingRate * delta_time);
     Player::playerState.g_PlayerPosition = glm::vec4(g_State.current_position + kTramPassengerOffset, 1.0f);
     InputHandler::inputState.g_UseFirstPersonCamera = true;
 
@@ -170,6 +195,6 @@ bool IsActive()
 
 glm::mat4 GetModelMatrix()
 {
-    return BuildModelMatrix(g_State.current_position, g_State.current_tangent);
+    return BuildModelMatrix(g_State.current_position);
 }
 } // namespace TramIntro
