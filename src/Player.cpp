@@ -14,6 +14,48 @@
 
 namespace Player
 {
+    glm::vec4 ResolveCollisions(glm::vec4 position, bool noClip, bool *hit_floor = nullptr, bool *hit_ceiling = nullptr);
+
+    namespace
+    {
+        constexpr float kGravity = 24.0f;
+        constexpr float kJumpSpeed = 8.0f;
+        constexpr float kMaxFallSpeed = 40.0f;
+        constexpr float kStepSize = 0.1f;
+
+        glm::vec4 ResolveMovement(glm::vec4 start_position, glm::vec4 displacement, bool noClip, bool *hit_floor = nullptr, bool *hit_ceiling = nullptr)
+        {
+            if (hit_floor != nullptr)
+                *hit_floor = false;
+            if (hit_ceiling != nullptr)
+                *hit_ceiling = false;
+
+            float dist = glm::length(displacement);
+            int num_steps = std::max(1, (int)std::ceil(dist / kStepSize));
+            glm::vec4 step_displacement = displacement / (float)num_steps;
+            glm::vec4 current_pos = start_position;
+
+            for (int i = 0; i < num_steps; ++i)
+            {
+                glm::vec4 next_pos = current_pos + step_displacement;
+                glm::vec3 before = glm::vec3(current_pos);
+                glm::vec3 after = glm::vec3(next_pos);
+
+                current_pos = ResolveCollisions(next_pos, noClip, hit_floor, hit_ceiling);
+
+                if (hit_floor != nullptr || hit_ceiling != nullptr)
+                {
+                    glm::vec3 resolved = glm::vec3(current_pos);
+                    if (hit_floor != nullptr && after.y < before.y && resolved.y >= after.y)
+                        *hit_floor = true;
+                    if (hit_ceiling != nullptr && after.y > before.y && resolved.y <= after.y)
+                        *hit_ceiling = true;
+                }
+            }
+
+            return current_pos;
+        }
+    }
 
     PlayerState playerState;
 
@@ -83,7 +125,7 @@ namespace Player
         return a + ab * v + ac * w; // = u*a + v*b + w*c, u = 1.0f - v - w
     }
 
-    glm::vec4 ResolveCollisions(glm::vec4 position, bool noClip)
+    glm::vec4 ResolveCollisions(glm::vec4 position, bool noClip, bool *hit_floor, bool *hit_ceiling)
     {
         float r = 0.25f;
         // Approximating a capsule height of 1.5f with three overlapping spheres
@@ -148,6 +190,10 @@ namespace Player
 
                             float penetration = r - dist;
                             pos += normal * penetration;
+                            if (hit_floor != nullptr && normal.y > 0.5f)
+                                *hit_floor = true;
+                            if (hit_ceiling != nullptr && normal.y < -0.5f)
+                                *hit_ceiling = true;
 
                             // Update tracking variables immediately for next tests
                             sphere_center = pos + glm::vec3(0.0f, h_offset, 0.0f);
@@ -185,32 +231,68 @@ namespace Player
             movement -= right;
         if (InputHandler::inputState.g_MoveRightPressed)
             movement += right;
-        if (InputHandler::inputState.g_MoveUpPressed)
-            movement += up;
-        if (InputHandler::inputState.g_MoveDownPressed)
-            movement -= up;
 
-        if (glm::length2(movement) > 0.0f)
+        glm::vec4 current_pos = playerState.g_PlayerPosition;
+
+        if (noClip)
         {
-            movement = movement / glm::length(movement);
-            glm::vec4 displacement = movement * playerState.g_PlayerMoveSpeed * delta_time;
+            if (InputHandler::inputState.g_MoveUpPressed)
+                movement += up;
+            if (InputHandler::inputState.g_MoveDownPressed)
+                movement -= up;
 
-            float dist = glm::length(displacement);
-            float step_size = 0.1f;
-            int num_steps = std::max(1, (int)std::ceil(dist / step_size));
-
-            glm::vec4 step_displacement = displacement / (float)num_steps;
-            glm::vec4 current_pos = playerState.g_PlayerPosition;
-
-            // Run the resolver incrementally along the movement vector to prevent tunneling
-
-            for (int i = 0; i < num_steps; ++i)
+            if (glm::length2(movement) > 0.0f)
             {
-                current_pos = ResolveCollisions(current_pos + step_displacement, noClip);
+                movement = movement / glm::length(movement);
+                glm::vec4 displacement = movement * playerState.g_PlayerMoveSpeed * delta_time;
+                current_pos = ResolveMovement(current_pos, displacement, noClip);
+            }
+        }
+        else
+        {
+            if (InputHandler::inputState.g_JumpRequested && playerState.g_PlayerIsGrounded)
+            {
+                playerState.g_PlayerVerticalVelocity = kJumpSpeed;
+                playerState.g_PlayerIsGrounded = false;
             }
 
-            playerState.g_PlayerPosition = current_pos;
-            playerState.g_PlayerPosition.w = 1.0f;
+            if (glm::length2(movement) > 0.0f)
+                movement = movement / glm::length(movement);
+
+            glm::vec4 horizontal_displacement = movement * playerState.g_PlayerMoveSpeed * delta_time;
+            horizontal_displacement.y = 0.0f;
+            current_pos = ResolveMovement(current_pos, horizontal_displacement, noClip);
+
+            playerState.g_PlayerVerticalVelocity -= kGravity * delta_time;
+            if (playerState.g_PlayerVerticalVelocity < -kMaxFallSpeed)
+                playerState.g_PlayerVerticalVelocity = -kMaxFallSpeed;
+
+            glm::vec4 vertical_displacement = glm::vec4(0.0f, playerState.g_PlayerVerticalVelocity * delta_time, 0.0f, 0.0f);
+            bool hit_floor = false;
+            bool hit_ceiling = false;
+            current_pos = ResolveMovement(current_pos, vertical_displacement, noClip, &hit_floor, &hit_ceiling);
+
+            if (hit_floor && playerState.g_PlayerVerticalVelocity <= 0.0f)
+            {
+                playerState.g_PlayerVerticalVelocity = 0.0f;
+                playerState.g_PlayerIsGrounded = true;
+            }
+            else if (hit_ceiling && playerState.g_PlayerVerticalVelocity > 0.0f)
+            {
+                playerState.g_PlayerVerticalVelocity = 0.0f;
+            }
+            else
+            {
+                playerState.g_PlayerIsGrounded = false;
+            }
         }
+
+        playerState.g_PlayerPosition = current_pos;
+        playerState.g_PlayerPosition.w = 1.0f;
+        InputHandler::inputState.g_JumpRequested = false;
+        printf("Player position: x=%.3f y=%.3f z=%.3f\n",
+               playerState.g_PlayerPosition.x,
+               playerState.g_PlayerPosition.y,
+               playerState.g_PlayerPosition.z);
     }
 } // namespace Player
