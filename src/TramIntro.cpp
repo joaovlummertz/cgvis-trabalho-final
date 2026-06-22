@@ -112,7 +112,9 @@ namespace
 
 void Initialize()
 {
-    g_State.tram_local_center = glm::vec3(-432.0f, 58.5f, 24.0f);
+    // The interactive-door branch translated both tram meshes by
+    // (417, 14, -20). Keep the intro pivot aligned with the translated model.
+    g_State.tram_local_center = glm::vec3(-15.0f, 72.5f, 4.0f);
 
     g_State.path_points = {
         glm::vec3(50.408f, -3.604f, -63.140f),

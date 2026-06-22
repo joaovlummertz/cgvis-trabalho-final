@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <map>
 #include <string>
+#include <vector>
 #include "SceneData.h" // Assuming this holds SceneObject and CollisionObject structs
 
 class Renderer
@@ -15,6 +16,7 @@ public:
 
     // Core Lifecycle
     void Initialize();
+    void Shutdown();
     void LoadShaders();
     void ClearColor(float r, float g, float b, float a);
 
@@ -50,4 +52,6 @@ private:
     GLint m_material_kd_uniform;
     GLint m_material_ks_uniform;
     GLint m_material_shininess_uniform;
+    std::vector<GLuint> m_TextureIDs;
+    std::vector<GLuint> m_SamplerIDs;
 };

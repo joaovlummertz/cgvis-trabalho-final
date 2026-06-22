@@ -5,9 +5,17 @@
 #include <limits>
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <tiny_obj_loader.h>
 #include <glad/glad.h>
+#include <glm/geometric.hpp>
 #include <glm/vec3.hpp>
+
+namespace
+{
+    std::vector<GLuint> g_ModelVertexArrays;
+    std::vector<GLuint> g_ModelBuffers;
+}
 
 // Internal helper structure hidden inside the source file
 struct ObjModel
@@ -52,6 +60,21 @@ struct ObjModel
     }
 };
 
+void ModelLoader::Cleanup()
+{
+    if (!g_ModelBuffers.empty())
+    {
+        glDeleteBuffers(static_cast<GLsizei>(g_ModelBuffers.size()), g_ModelBuffers.data());
+        g_ModelBuffers.clear();
+    }
+
+    if (!g_ModelVertexArrays.empty())
+    {
+        glDeleteVertexArrays(static_cast<GLsizei>(g_ModelVertexArrays.size()), g_ModelVertexArrays.data());
+        g_ModelVertexArrays.clear();
+    }
+}
+
 void ModelLoader::LoadAndAddToScene(
     const char *model_path,
     const char *texture_basepath,
@@ -59,13 +82,16 @@ void ModelLoader::LoadAndAddToScene(
     std::map<std::string, SceneObject> &virtualScene,
     std::vector<CollisionObject> &collisionScene,
     bool build_collision,
-    float collision_scale)
+    float collision_scale,
+    const glm::vec3 &collision_offset,
+    float collision_yaw)
 {
     // Parse the file using our internal helper
     ObjModel model(model_path);
 
     GLuint vertex_array_object_id;
     glGenVertexArrays(1, &vertex_array_object_id);
+    g_ModelVertexArrays.push_back(vertex_array_object_id);
     glBindVertexArray(vertex_array_object_id);
 
     std::vector<GLuint> indices;
@@ -77,15 +103,20 @@ void ModelLoader::LoadAndAddToScene(
     {
         size_t first_index = indices.size();
         size_t num_triangles = model.shapes[shape].mesh.num_face_vertices.size();
+        if (num_triangles == 0)
+            continue;
 
-        const float minval = std::numeric_limits<float>::min();
+        const float minval = std::numeric_limits<float>::lowest();
         const float maxval = std::numeric_limits<float>::max();
 
         glm::vec3 bbox_min = glm::vec3(maxval, maxval, maxval);
         glm::vec3 bbox_max = glm::vec3(minval, minval, minval);
 
         GLuint tex_id = 0;
-        int mat_id = model.shapes[shape].mesh.material_ids[0];
+        int mat_id = -1;
+        if (!model.shapes[shape].mesh.material_ids.empty())
+            mat_id = model.shapes[shape].mesh.material_ids[0];
+
         if (mat_id >= 0 && mat_id < (int)model.materials.size())
         {
             const std::string &texname = model.materials[mat_id].diffuse_texname;
@@ -101,14 +132,34 @@ void ModelLoader::LoadAndAddToScene(
         {
             assert(model.shapes[shape].mesh.num_face_vertices[triangle] == 3);
 
+            tinyobj::index_t triangle_indices[3];
+            glm::vec3 triangle_positions[3];
             for (size_t vertex = 0; vertex < 3; ++vertex)
             {
-                tinyobj::index_t idx = model.shapes[shape].mesh.indices[3 * triangle + vertex];
+                triangle_indices[vertex] = model.shapes[shape].mesh.indices[3 * triangle + vertex];
+                const int vertex_index = triangle_indices[vertex].vertex_index;
+                triangle_positions[vertex] = glm::vec3(
+                    model.attrib.vertices[3 * vertex_index + 0],
+                    model.attrib.vertices[3 * vertex_index + 1],
+                    model.attrib.vertices[3 * vertex_index + 2]);
+            }
+
+            glm::vec3 face_normal = glm::cross(
+                triangle_positions[1] - triangle_positions[0],
+                triangle_positions[2] - triangle_positions[0]);
+            if (glm::dot(face_normal, face_normal) > 0.0f)
+                face_normal = glm::normalize(face_normal);
+            else
+                face_normal = glm::vec3(0.0f, 1.0f, 0.0f);
+
+            for (size_t vertex = 0; vertex < 3; ++vertex)
+            {
+                tinyobj::index_t idx = triangle_indices[vertex];
                 indices.push_back(first_index + 3 * triangle + vertex);
 
-                const float vx = model.attrib.vertices[3 * idx.vertex_index + 0];
-                const float vy = model.attrib.vertices[3 * idx.vertex_index + 1];
-                const float vz = model.attrib.vertices[3 * idx.vertex_index + 2];
+                const float vx = triangle_positions[vertex].x;
+                const float vy = triangle_positions[vertex].y;
+                const float vz = triangle_positions[vertex].z;
 
                 model_coefficients.push_back(vx);
                 model_coefficients.push_back(vy);
@@ -132,8 +183,14 @@ void ModelLoader::LoadAndAddToScene(
                     normal_coefficients.push_back(nx);
                     normal_coefficients.push_back(ny);
                     normal_coefficients.push_back(nz);
-                    normal_coefficients.push_back(0.0f);
                 }
+                else
+                {
+                    normal_coefficients.push_back(face_normal.x);
+                    normal_coefficients.push_back(face_normal.y);
+                    normal_coefficients.push_back(face_normal.z);
+                }
+                normal_coefficients.push_back(0.0f);
 
                 if (idx.texcoord_index != -1)
                 {
@@ -141,6 +198,11 @@ void ModelLoader::LoadAndAddToScene(
                     const float v = model.attrib.texcoords[2 * idx.texcoord_index + 1];
                     texture_coefficients.push_back(u);
                     texture_coefficients.push_back(v);
+                }
+                else
+                {
+                    texture_coefficients.push_back(0.0f);
+                    texture_coefficients.push_back(0.0f);
                 }
             }
         }
@@ -161,12 +223,24 @@ void ModelLoader::LoadAndAddToScene(
         {
             CollisionObject collision_object;
             collision_object.name = model.shapes[shape].name;
-            collision_object.bbox_min = bbox_min * collision_scale;
-            collision_object.bbox_max = bbox_max * collision_scale;
+            collision_object.bbox_min = glm::vec3(std::numeric_limits<float>::max());
+            collision_object.bbox_max = glm::vec3(std::numeric_limits<float>::lowest());
             collision_object.vertices.reserve(shape_vertices.size());
+
+            const float cos_yaw = std::cos(collision_yaw);
+            const float sin_yaw = std::sin(collision_yaw);
             for (const glm::vec3 &vertex : shape_vertices)
             {
-                collision_object.vertices.push_back(vertex * collision_scale);
+                const glm::vec3 scaled = vertex * collision_scale;
+                glm::vec3 transformed(
+                    cos_yaw * scaled.x + sin_yaw * scaled.z,
+                    scaled.y,
+                    -sin_yaw * scaled.x + cos_yaw * scaled.z);
+                transformed += collision_offset;
+
+                collision_object.vertices.push_back(transformed);
+                collision_object.bbox_min = glm::min(collision_object.bbox_min, transformed);
+                collision_object.bbox_max = glm::max(collision_object.bbox_max, transformed);
             }
             collisionScene.push_back(collision_object);
         }
@@ -175,33 +249,31 @@ void ModelLoader::LoadAndAddToScene(
     // VBO Generation Buffers
     GLuint VBO_model_coefficients_id;
     glGenBuffers(1, &VBO_model_coefficients_id);
+    g_ModelBuffers.push_back(VBO_model_coefficients_id);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_model_coefficients_id);
     glBufferData(GL_ARRAY_BUFFER, model_coefficients.size() * sizeof(float), model_coefficients.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
-    if (!normal_coefficients.empty())
-    {
-        GLuint VBO_normal_coefficients_id;
-        glGenBuffers(1, &VBO_normal_coefficients_id);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO_normal_coefficients_id);
-        glBufferData(GL_ARRAY_BUFFER, normal_coefficients.size() * sizeof(float), normal_coefficients.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(1);
-    }
+    GLuint VBO_normal_coefficients_id;
+    glGenBuffers(1, &VBO_normal_coefficients_id);
+    g_ModelBuffers.push_back(VBO_normal_coefficients_id);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_normal_coefficients_id);
+    glBufferData(GL_ARRAY_BUFFER, normal_coefficients.size() * sizeof(float), normal_coefficients.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
 
-    if (!texture_coefficients.empty())
-    {
-        GLuint VBO_texture_coefficients_id;
-        glGenBuffers(1, &VBO_texture_coefficients_id);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO_texture_coefficients_id);
-        glBufferData(GL_ARRAY_BUFFER, texture_coefficients.size() * sizeof(float), texture_coefficients.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(2);
-    }
+    GLuint VBO_texture_coefficients_id;
+    glGenBuffers(1, &VBO_texture_coefficients_id);
+    g_ModelBuffers.push_back(VBO_texture_coefficients_id);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_texture_coefficients_id);
+    glBufferData(GL_ARRAY_BUFFER, texture_coefficients.size() * sizeof(float), texture_coefficients.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(2);
 
     GLuint indices_id;
     glGenBuffers(1, &indices_id);
+    g_ModelBuffers.push_back(indices_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
 

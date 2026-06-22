@@ -40,9 +40,9 @@ void Camera::HandleFirstPersonCamera(InputState input, PlayerState playerState, 
 
 void Camera::HandleThirdPersonCamera(InputState input, PlayerState playerState, float dx, float dy)
 {
-    Player::playerState.g_PlayerYaw = g_CameraTheta + 3.14f; // Player faces opposite to camera in third-person
     g_CameraTheta -= 0.01f * dx;
     g_CameraPhi += 0.01f * dy;
+    Player::playerState.g_PlayerYaw = g_CameraTheta + 3.14f; // Player faces opposite to camera in third-person
 
     // Handle scroll for camera zoom before computing camera position.
     g_CameraDistance -= 0.1f * input.g_ScrollY;
