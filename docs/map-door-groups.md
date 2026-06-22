@@ -26,7 +26,7 @@ OBJ bounds below are unscaled; the game loads the map at scale `0.02`.
 
 ## BlastDoor1
 
-- Original export groups: `Brush987` through `Brush998`
+- Current export groups: `Brush726` through `Brush737`
 - Renamed groups: `BlastDoor1_01` through `BlastDoor1_12`
 - Materials:
   - Parts `01–03`, `06–08`, `11–12`: `C1A1DOOREDGE`
@@ -37,7 +37,7 @@ OBJ bounds below are unscaled; the game loads the map at scale `0.02`.
 
 ## BlastDoor2
 
-- Original export groups: `Brush1017` through `Brush1028`
+- Current export groups: `Brush756` through `Brush767`
 - Renamed groups: `BlastDoor2_01` through `BlastDoor2_12`
 - Materials:
   - Parts `01–02`, `07–08`: `LAB1_DOOR2A`
@@ -47,8 +47,8 @@ OBJ bounds below are unscaled; the game loads the map at scale `0.02`.
 
 ## BabtechDoor
 
-- Original export groups: `Brush897`, `Brush900`, `Brush903`, `Brush904`,
-  `Brush907`
+- Current export groups: `Brush636`, `Brush639`, `Brush642`, `Brush643`,
+  `Brush646`
 - Renamed groups: `BabtechDoor_01` through `BabtechDoor_05`
 - Material for every part: `BABTECH_DR1E`
 - Combined OBJ bounds: `(-3289, -492, 1321)` to `(-3225, -396, 1345)`
@@ -56,9 +56,9 @@ OBJ bounds below are unscaled; the game loads the map at scale `0.02`.
 
 ## LargeDoor
 
-- Original export groups:
-  - `Brush2339` → `LargeDoor_01` (`C1A1_DR3B`)
-  - `Brush2550` → `LargeDoor_02` (`C1A1_DR3`)
+- Current export groups:
+  - `Brush1997` → `LargeDoor_01` (`C1A1_DR3B`)
+  - `Brush2200` → `LargeDoor_02` (`C1A1_DR3`)
 - Combined OBJ bounds: `(-3073, -504, 1449)` to
   `(-3049, -360, 1641)`
 - Motion: vertical along `-Y` by `3.2` world units
