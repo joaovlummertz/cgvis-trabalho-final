@@ -15,6 +15,27 @@ namespace
 {
     std::vector<GLuint> g_ModelVertexArrays;
     std::vector<GLuint> g_ModelBuffers;
+
+    bool IsLightMaterial(const std::string &materialName)
+    {
+        return materialName.find("LIGHT") != std::string::npos ||
+               materialName.find("SPOT") != std::string::npos;
+    }
+
+    glm::vec3 TransformPosition(const glm::vec3 &position,
+                                float scale,
+                                const glm::vec3 &offset,
+                                float yaw)
+    {
+        const glm::vec3 scaled = position * scale;
+        const float cos_yaw = std::cos(yaw);
+        const float sin_yaw = std::sin(yaw);
+        return glm::vec3(
+                   cos_yaw * scaled.x + sin_yaw * scaled.z,
+                   scaled.y,
+                   -sin_yaw * scaled.x + cos_yaw * scaled.z) +
+               offset;
+    }
 }
 
 // Internal helper structure hidden inside the source file
@@ -84,7 +105,8 @@ void ModelLoader::LoadAndAddToScene(
     bool build_collision,
     float collision_scale,
     const glm::vec3 &collision_offset,
-    float collision_yaw)
+    float collision_yaw,
+    bool extract_lights)
 {
     // Parse the file using our internal helper
     ObjModel model(model_path);
@@ -114,11 +136,13 @@ void ModelLoader::LoadAndAddToScene(
 
         GLuint tex_id = 0;
         int mat_id = -1;
+        std::string material_name;
         if (!model.shapes[shape].mesh.material_ids.empty())
             mat_id = model.shapes[shape].mesh.material_ids[0];
 
         if (mat_id >= 0 && mat_id < (int)model.materials.size())
         {
+            material_name = model.materials[mat_id].name;
             const std::string &texname = model.materials[mat_id].diffuse_texname;
             if (!texname.empty())
             {
@@ -244,8 +268,16 @@ void ModelLoader::LoadAndAddToScene(
         theobject.num_indices = last_index - first_index + 1;
         theobject.rendering_mode = GL_TRIANGLES;
         theobject.vertex_array_object_id = vertex_array_object_id;
+        theobject.emissive = IsLightMaterial(material_name);
 
         virtualScene[model.shapes[shape].name] = theobject;
+
+        if (extract_lights && theobject.emissive)
+        {
+            const glm::vec3 center = (bbox_min + bbox_max) * 0.5f;
+            g_LightPoints.push_back(
+                TransformPosition(center, collision_scale, collision_offset, collision_yaw));
+        }
 
         if (build_collision)
         {
@@ -255,16 +287,10 @@ void ModelLoader::LoadAndAddToScene(
             collision_object.bbox_max = glm::vec3(std::numeric_limits<float>::lowest());
             collision_object.vertices.reserve(shape_vertices.size());
 
-            const float cos_yaw = std::cos(collision_yaw);
-            const float sin_yaw = std::sin(collision_yaw);
             for (const glm::vec3 &vertex : shape_vertices)
             {
-                const glm::vec3 scaled = vertex * collision_scale;
-                glm::vec3 transformed(
-                    cos_yaw * scaled.x + sin_yaw * scaled.z,
-                    scaled.y,
-                    -sin_yaw * scaled.x + cos_yaw * scaled.z);
-                transformed += collision_offset;
+                const glm::vec3 transformed = TransformPosition(
+                    vertex, collision_scale, collision_offset, collision_yaw);
 
                 collision_object.vertices.push_back(transformed);
                 collision_object.bbox_min = glm::min(collision_object.bbox_min, transformed);

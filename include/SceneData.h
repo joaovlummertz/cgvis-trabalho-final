@@ -17,6 +17,7 @@ struct SceneObject
     GLenum rendering_mode;
     GLuint vertex_array_object_id;
     GLuint texture_id;
+    bool emissive;
 };
 
 struct CollisionObject
@@ -29,5 +30,6 @@ struct CollisionObject
 
 extern std::map<std::string, SceneObject> g_VirtualScene;
 extern std::vector<CollisionObject> g_CollisionScene;
+extern std::vector<glm::vec3> g_LightPoints;
 
 #endif
