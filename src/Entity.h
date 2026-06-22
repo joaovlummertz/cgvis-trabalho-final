@@ -63,3 +63,18 @@ private:
     glm::vec3 m_CurrentBoundsMin;
     glm::vec3 m_CurrentBoundsMax;
 };
+
+class ChasingZombie : public Entity
+{
+public:
+    glm::vec3 position;
+    float yaw = 0.0f;
+    float movementSpeed = 1.8f;
+    float renderScale = 0.02f;
+
+    ChasingZombie(std::string meshName, glm::vec3 startPos, float speed = 1.8f, float scale = 0.02f);
+
+    void Update(float deltaTime) override;
+    void Draw(Renderer &renderer, const std::map<std::string, SceneObject> &virtualScene) override;
+    bool IntersectsRay(const glm::vec3 &origin, const glm::vec3 &direction, float &distance) const override;
+};
