@@ -22,5 +22,6 @@ public:
         bool build_collision = false,
         float collision_scale = 1.0f,
         const glm::vec3 &collision_offset = glm::vec3(0.0f),
-        float collision_yaw = 0.0f);
+        float collision_yaw = 0.0f,
+        bool extract_lights = false);
 };

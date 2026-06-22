@@ -5,6 +5,7 @@
 #include <vector>
 #include <cctype>
 #include <deque>
+#include <algorithm>
 #include <stb_image.h>
 
 namespace
@@ -168,12 +169,31 @@ void Renderer::DrawVirtualObject(const char *prefix, const std::map<std::string,
         glBindTexture(GL_TEXTURE_2D, obj.texture_id);
 
         glUniform1i(m_has_texture_uniform, obj.texture_id != 0 ? 1 : 0);
+        glUniform1i(m_emissive_uniform, obj.emissive ? 1 : 0);
 
         glDrawElements(obj.rendering_mode, obj.num_indices, GL_UNSIGNED_INT,
                        (void *)(obj.first_index * sizeof(GLuint)));
 
         glBindVertexArray(0);
     }
+}
+
+void Renderer::SetPointLights(const std::vector<glm::vec3> &lights)
+{
+    const GLsizei count = static_cast<GLsizei>(std::min<size_t>(lights.size(), 64));
+    glUniform1i(m_point_light_count_uniform, count);
+    if (count > 0)
+    {
+        glUniform3fv(m_point_light_positions_uniform, count, glm::value_ptr(lights[0]));
+    }
+}
+
+void Renderer::SetTramLights(const glm::mat4 &tramModel)
+{
+    const glm::vec3 positions[] = {
+        glm::vec3(tramModel * glm::vec4(-15.0f, 122.0f, 52.5f, 1.0f)),
+        glm::vec3(tramModel * glm::vec4(-15.0f, 122.0f, -44.5f, 1.0f))};
+    glUniform3fv(m_tram_light_positions_uniform, 2, glm::value_ptr(positions[0]));
 }
 
 GLuint Renderer::LoadTextureImage(const char *filename)
@@ -231,8 +251,12 @@ void Renderer::LoadShaders()
     m_bbox_min_uniform = glGetUniformLocation(m_GpuProgramID, "bbox_min");
     m_bbox_max_uniform = glGetUniformLocation(m_GpuProgramID, "bbox_max");
     m_has_texture_uniform = glGetUniformLocation(m_GpuProgramID, "hasTexture");
+    m_emissive_uniform = glGetUniformLocation(m_GpuProgramID, "is_emissive");
     m_light_position_uniform = glGetUniformLocation(m_GpuProgramID, "light_position");
     m_light_color_uniform = glGetUniformLocation(m_GpuProgramID, "light_color");
+    m_point_light_count_uniform = glGetUniformLocation(m_GpuProgramID, "point_light_count");
+    m_point_light_positions_uniform = glGetUniformLocation(m_GpuProgramID, "point_light_positions[0]");
+    m_tram_light_positions_uniform = glGetUniformLocation(m_GpuProgramID, "tram_light_positions[0]");
     m_ambient_color_uniform = glGetUniformLocation(m_GpuProgramID, "ambient_color");
     m_material_ka_uniform = glGetUniformLocation(m_GpuProgramID, "material_ka");
     m_material_kd_uniform = glGetUniformLocation(m_GpuProgramID, "material_kd");
@@ -243,8 +267,9 @@ void Renderer::LoadShaders()
     glUseProgram(m_GpuProgramID);
     glUniform1i(glGetUniformLocation(m_GpuProgramID, "TextureImage"), 0);
     glUniform3f(m_light_position_uniform, 20.0f, 30.0f, 25.0f);
-    glUniform3f(m_light_color_uniform, 1.0f, 0.98f, 0.92f);
-    glUniform3f(m_ambient_color_uniform, 0.18f, 0.18f, 0.22f);
+    glUniform3f(m_light_color_uniform, 0.18f, 0.176f, 0.166f);
+    glUniform3f(m_ambient_color_uniform, 0.12f, 0.12f, 0.15f);
+    glUniform1i(m_point_light_count_uniform, 0);
     glUniform3f(m_material_ka_uniform, 0.45f, 0.45f, 0.45f);
     glUniform3f(m_material_kd_uniform, 1.0f, 1.0f, 1.0f);
     glUniform3f(m_material_ks_uniform, 0.35f, 0.35f, 0.35f);

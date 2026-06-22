@@ -20,6 +20,7 @@
 
 std::map<std::string, SceneObject> g_VirtualScene;
 std::vector<CollisionObject> g_CollisionScene;
+std::vector<glm::vec3> g_LightPoints;
 std::vector<Entity *> g_WorldEntities;
 
 double g_LastMouseX = 0.0;
@@ -105,7 +106,7 @@ int main(int argc, char *argv[])
     glfwPollEvents();
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/crowbar.obj", "../../assets/SMD/", gameRenderer, g_VirtualScene, g_CollisionScene);
     glfwPollEvents();
-    ModelLoader::LoadAndAddToScene("../../assets/OBJ/maps/fullmap.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f);
+    ModelLoader::LoadAndAddToScene("../../assets/OBJ/maps/fullmap.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, glm::vec3(0.0f), 0.0f, true);
     // Equivalent to TramIntro::GetModelMatrix() at the end of the path,
     // expressed without its local-center pivot so rendering and collision
     // hand off to the interactive tram without a visible jump.
@@ -277,7 +278,22 @@ int main(int argc, char *argv[])
         float field_of_view = 3.141592f / 3.0f;
         glm::mat4 projection = Matrix_Perspective(field_of_view, g_ScreenRatio, -0.1f, -500.0f);
 
+        const bool tramIntroActive = TramIntro::IsActive();
+        glm::mat4 tramModel;
+        if (tramIntroActive)
+        {
+            tramModel = TramIntro::GetModelMatrix();
+        }
+        else
+        {
+            tramModel = Matrix_Translate(tramPosition.x, tramPosition.y, tramPosition.z) *
+                        Matrix_Rotate_Y(tramYaw) *
+                        Matrix_Scale(0.02f, 0.02f, 0.02f);
+        }
+
         gameRenderer.BeginFrame(view, projection);
+        gameRenderer.SetPointLights(g_LightPoints);
+        gameRenderer.SetTramLights(tramModel);
 
         // Draw Player character mesh
         if (!InputHandler::inputState.g_UseFirstPersonCamera)
@@ -296,19 +312,6 @@ int main(int argc, char *argv[])
         {
             gameRenderer.SetModelMatrix(GetGroundCrowbarModelMatrix());
             gameRenderer.DrawVirtualObject("crowbar", g_VirtualScene);
-        }
-
-        const bool tramIntroActive = TramIntro::IsActive();
-        glm::mat4 tramModel;
-        if (tramIntroActive)
-        {
-            tramModel = TramIntro::GetModelMatrix();
-        }
-        else
-        {
-            tramModel = Matrix_Translate(tramPosition.x, tramPosition.y, tramPosition.z) *
-                        Matrix_Rotate_Y(tramYaw) *
-                        Matrix_Scale(0.02f, 0.02f, 0.02f);
         }
 
         gameRenderer.SetModelMatrix(tramModel);

@@ -27,6 +27,8 @@ public:
     void BeginFrame(const glm::mat4 &view, const glm::mat4 &projection);
     void DrawVirtualObject(const char *prefix, const std::map<std::string, SceneObject> &virtualScene);
     void SetModelMatrix(const glm::mat4 &model);
+    void SetPointLights(const std::vector<glm::vec3> &lights);
+    void SetTramLights(const glm::mat4 &tramModel);
 
     // Getters
     GLuint GetGpuProgramID() const { return m_GpuProgramID; }
@@ -45,8 +47,12 @@ private:
     GLint m_bbox_min_uniform;
     GLint m_bbox_max_uniform;
     GLint m_has_texture_uniform;
+    GLint m_emissive_uniform;
     GLint m_light_position_uniform;
     GLint m_light_color_uniform;
+    GLint m_point_light_count_uniform;
+    GLint m_point_light_positions_uniform;
+    GLint m_tram_light_positions_uniform;
     GLint m_ambient_color_uniform;
     GLint m_material_ka_uniform;
     GLint m_material_kd_uniform;

@@ -27,8 +27,13 @@ uniform vec4 bbox_max;
 // Variável para acesso das imagens de textura
 uniform sampler2D TextureImage;
 uniform bool hasTexture;
+uniform bool is_emissive;
 uniform vec3 light_position;
 uniform vec3 light_color;
+#define MAX_POINT_LIGHTS 64
+uniform int point_light_count;
+uniform vec3 point_light_positions[MAX_POINT_LIGHTS];
+uniform vec3 tram_light_positions[2];
 uniform vec3 ambient_color;
 uniform vec3 material_ka;
 uniform vec3 material_kd;
@@ -58,13 +63,13 @@ void main()
 
     // Normal do fragmento atual, interpolada pelo rasterizador a partir das
     // normais de cada vértice.
-    vec4 n = normalize(normal);
+    vec3 n = normalize(normal.xyz);
 
     // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
-    vec4 l = normalize(vec4(light_position, 0.0) - p);
+    vec3 l = normalize(light_position - p.xyz);
 
     // Vetor que define o sentido da câmera em relação ao ponto atual.
-    vec4 v = normalize(camera_position - p);
+    vec3 v = normalize(camera_position.xyz - p.xyz);
 
     vec3 base_color = vec3(1.0);
     if (hasTexture)
@@ -79,11 +84,36 @@ void main()
     float lambert = max(0.0, dot(n, l));
     vec3 diffuse = light_color * material_kd * base_color * lambert;
 
-    vec4 r = reflect(-l, n);
-    float spec_angle = max(0.0, dot(normalize(v), normalize(r)));
-    vec3 specular = light_color * material_ks * pow(spec_angle, material_shininess);
+    vec3 r = reflect(-l, n);
+    float spec_angle = max(0.0, dot(v, r));
+    vec3 specular = light_color * material_ks *
+                    pow(spec_angle, material_shininess) *
+                    step(0.0001, lambert);
 
     color.rgb = ambient + diffuse + specular;
+
+    for (int i = 0; i < point_light_count; ++i)
+    {
+        vec3 to_light = point_light_positions[i] - p.xyz;
+        float distance_to_light = length(to_light);
+        vec3 point_l = to_light / max(distance_to_light, 0.0001);
+        float diffuse = max(0.0, dot(n, point_l));
+        float falloff = max(0.0, 1.0 - distance_to_light / 8.0);
+        color.rgb += vec3(2.8, 2.65, 2.35) * base_color *
+                     diffuse * falloff * falloff;
+    }
+
+    for (int i = 0; i < 2; ++i)
+    {
+        vec3 to_light = tram_light_positions[i] - p.xyz;
+        float distance_to_light = length(to_light);
+        float falloff = max(0.0, 1.0 - distance_to_light / 5.0);
+        color.rgb += vec3(3.5, 0.08, 0.04) * base_color *
+                     max(0.0, dot(n, normalize(to_light))) * falloff * falloff;
+    }
+
+    if (is_emissive)
+        color.rgb += base_color * 0.85;
 
     // NOTE: Se você quiser fazer o rendering de objetos transparentes, é
     // necessário:
