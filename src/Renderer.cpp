@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <vector>
 #include <cctype>
+#include <deque>
 #include <stb_image.h>
 
 namespace
@@ -18,6 +19,80 @@ namespace
 
         const unsigned char suffixStart = static_cast<unsigned char>(objectName[family.size()]);
         return std::isdigit(suffixStart) || suffixStart == '-' || suffixStart == '_';
+    }
+
+    bool IsColorKeyTexture(const char *filename)
+    {
+        const std::string path(filename);
+        const std::string::size_type separator = path.find_last_of("/\\");
+        const std::string::size_type basename = separator == std::string::npos ? 0 : separator + 1;
+        return basename < path.size() && path[basename] == '{';
+    }
+
+    void ApplyBlueColorKey(unsigned char *data, int width, int height)
+    {
+        const int pixelCount = width * height;
+        for (int pixel = 0; pixel < pixelCount; ++pixel)
+        {
+            unsigned char *rgba = data + 4 * pixel;
+            if (rgba[0] == 0 && rgba[1] == 0 && rgba[2] == 255)
+                rgba[3] = 0;
+        }
+    }
+
+    // Give fully transparent pixels the RGB value of their nearest visible
+    // neighbor. Their alpha stays zero, but filtering and mipmaps no longer
+    // mix the old blue color into the visible edge.
+    void BleedTransparentPixelColors(unsigned char *data, int width, int height)
+    {
+        const int pixelCount = width * height;
+        std::vector<int> nearestSource(pixelCount, -1);
+        std::deque<int> pending;
+
+        for (int pixel = 0; pixel < pixelCount; ++pixel)
+        {
+            if (data[4 * pixel + 3] != 0)
+            {
+                nearestSource[pixel] = pixel;
+                pending.push_back(pixel);
+            }
+        }
+
+        const int offsets[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        while (!pending.empty())
+        {
+            const int pixel = pending.front();
+            pending.pop_front();
+            const int x = pixel % width;
+            const int y = pixel / width;
+
+            for (const auto &offset : offsets)
+            {
+                const int neighborX = x + offset[0];
+                const int neighborY = y + offset[1];
+                if (neighborX < 0 || neighborX >= width || neighborY < 0 || neighborY >= height)
+                    continue;
+
+                const int neighbor = neighborY * width + neighborX;
+                if (nearestSource[neighbor] != -1)
+                    continue;
+
+                nearestSource[neighbor] = nearestSource[pixel];
+                pending.push_back(neighbor);
+            }
+        }
+
+        for (int pixel = 0; pixel < pixelCount; ++pixel)
+        {
+            if (data[4 * pixel + 3] != 0 || nearestSource[pixel] == -1)
+                continue;
+
+            const unsigned char *source = data + 4 * nearestSource[pixel];
+            unsigned char *destination = data + 4 * pixel;
+            destination[0] = source[0];
+            destination[1] = source[1];
+            destination[2] = source[2];
+        }
     }
 }
 
@@ -105,13 +180,17 @@ GLuint Renderer::LoadTextureImage(const char *filename)
 {
     stbi_set_flip_vertically_on_load(true);
     int width, height, channels;
-    unsigned char *data = stbi_load(filename, &width, &height, &channels, 3);
+    unsigned char *data = stbi_load(filename, &width, &height, &channels, 4);
 
     if (data == nullptr)
     {
         fprintf(stderr, "ERROR: Cannot open image file \"%s\".\n", filename);
         std::exit(EXIT_FAILURE);
     }
+
+    if (IsColorKeyTexture(filename))
+        ApplyBlueColorKey(data, width, height);
+    BleedTransparentPixelColors(data, width, height);
 
     GLuint texture_id, sampler_id;
     glGenTextures(1, &texture_id);
@@ -125,7 +204,7 @@ GLuint Renderer::LoadTextureImage(const char *filename)
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     glBindSampler(0, sampler_id);
 
