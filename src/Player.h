@@ -9,6 +9,8 @@ struct PlayerState
     float g_PlayerMoveSpeed = 15.0f;
     float g_PlayerYaw = 0.0f;
     float g_PlayerPitch = 0.0f;
+    float g_PlayerVerticalVelocity = 0.0f;
+    bool g_PlayerIsGrounded = false;
 };
 namespace Player
 {

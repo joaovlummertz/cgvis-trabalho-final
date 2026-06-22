@@ -33,7 +33,11 @@ namespace InputHandler
             inputState.g_MoveRightPressed = pressed;
 
         if (key == GLFW_KEY_SPACE)
+        {
             inputState.g_MoveUpPressed = pressed;
+            if (action == GLFW_PRESS)
+                inputState.g_JumpRequested = true;
+        }
 
         if (key == GLFW_KEY_LEFT_SHIFT)
             inputState.g_MoveDownPressed = pressed;

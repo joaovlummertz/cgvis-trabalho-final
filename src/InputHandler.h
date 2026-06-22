@@ -12,6 +12,7 @@ struct InputState
     bool g_MoveRightPressed = false;
     bool g_MoveUpPressed = false;
     bool g_MoveDownPressed = false;
+    bool g_JumpRequested = false;
     bool g_ShowHitbox = false;
     bool g_UseFirstPersonCamera = false;
     bool g_UseNoclip = false;
