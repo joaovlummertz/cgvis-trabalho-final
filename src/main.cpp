@@ -41,7 +41,7 @@ static bool IsPlayerSteppingOnGroundCrowbar()
            std::fabs(playerPosition.y - g_GroundCrowbarPosition.y) <= maxVerticalDistance;
 }
 
-static glm::mat4 GetCrowbarModelMatrixFirstPerson()
+static glm::mat4 GetCrowbarModelMatrixFirstPerson(float swing)
 {
     // Camera-space coordinates keep the crowbar fixed to the viewport:
     // +X is right, +Y is up, and -Z is forward.
@@ -50,6 +50,8 @@ static glm::mat4 GetCrowbarModelMatrixFirstPerson()
     const glm::vec3 crowbarCenter(-10.7806295f, 33.118441f, 8.964881f);
 
     return Matrix_Translate(0.20f, -0.12f, -0.45f) *
+           Matrix_Rotate_X(-1.2f * swing) *
+           Matrix_Rotate_Z(0.4f * swing) *
            Matrix_Rotate_Z(0.12f) *
            Matrix_Rotate_X(1.25f) *
            Matrix_Rotate_Y(3.141592f) *
@@ -57,11 +59,13 @@ static glm::mat4 GetCrowbarModelMatrixFirstPerson()
            Matrix_Translate(-crowbarCenter.x, -crowbarCenter.y, -crowbarCenter.z);
 }
 
-static glm::mat4 GetCrowbarModelMatrixThirdPerson(const PlayerState &playerState)
+static glm::mat4 GetCrowbarModelMatrixThirdPerson(const PlayerState &playerState, float swing)
 {
     glm::mat4 model = Matrix_Translate(playerState.g_PlayerPosition.x, playerState.g_PlayerPosition.y, playerState.g_PlayerPosition.z) *
                       Matrix_Rotate_Y(playerState.g_PlayerYaw) *
                       Matrix_Translate(0.35f, 0.84f, 0.24f) *
+                      Matrix_Rotate_X(-1.2f * swing) *
+                      Matrix_Rotate_Z(0.4f * swing) *
                       Matrix_Rotate_Z(1.95f) *
                       Matrix_Rotate_X(0.95f) *
                       Matrix_Scale(0.02f, 0.02f, 0.02f);
@@ -148,12 +152,32 @@ int main(int argc, char *argv[])
         "zombie", glm::vec3(44.0f, -4.82f, -14.0f));
     g_WorldEntities.push_back(finalBoss);
 
+    const float crowbarAttackDuration = 0.3f;
+    float crowbarAttackElapsed = crowbarAttackDuration;
+
     while (!glfwWindowShouldClose(WindowManager.window))
     {
         static float previous_time = (float)glfwGetTime();
         float current_time = (float)glfwGetTime();
         float delta_time = current_time - previous_time;
         previous_time = current_time;
+
+        if (InputHandler::inputState.g_CrowbarAttackRequested)
+        {
+            InputHandler::inputState.g_CrowbarAttackRequested = false;
+            if (InputHandler::inputState.g_EquippedCrowbar)
+                crowbarAttackElapsed = 0.0f;
+        }
+
+        if (crowbarAttackElapsed < crowbarAttackDuration)
+        {
+            crowbarAttackElapsed += delta_time;
+            if (crowbarAttackElapsed > crowbarAttackDuration)
+                crowbarAttackElapsed = crowbarAttackDuration;
+        }
+
+        const float crowbarAttackProgress = crowbarAttackElapsed / crowbarAttackDuration;
+        const float crowbarSwing = std::sin(crowbarAttackProgress * 3.141592f);
 
         double mouseX = InputHandler::inputState.g_MouseX;
         double mouseY = InputHandler::inputState.g_MouseY;
@@ -315,10 +339,10 @@ int main(int argc, char *argv[])
                 // while preserving depth between the crowbar's own triangles.
                 glClear(GL_DEPTH_BUFFER_BIT);
                 gameRenderer.BeginFrame(glm::mat4(1.0f), projection);
-                crowbarModel = GetCrowbarModelMatrixFirstPerson();
+                crowbarModel = GetCrowbarModelMatrixFirstPerson(crowbarSwing);
             }
             else
-                crowbarModel = GetCrowbarModelMatrixThirdPerson(Player::playerState);
+                crowbarModel = GetCrowbarModelMatrixThirdPerson(Player::playerState, crowbarSwing);
 
             gameRenderer.SetModelMatrix(crowbarModel);
             gameRenderer.DrawVirtualObject("crowbar", g_VirtualScene);
