@@ -6,8 +6,6 @@ namespace InputHandler
 
     void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
     {
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-            inputState.g_CrowbarAttackRequested = true;
     }
 
     void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
@@ -65,7 +63,6 @@ namespace InputHandler
             inputState.g_UseNoclip = !inputState.g_UseNoclip;
             printf("noClip activated\n");
         }
-
     }
 
     void Init(GLFWwindow *window)

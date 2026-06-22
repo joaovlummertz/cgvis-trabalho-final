@@ -68,13 +68,31 @@ class ChasingZombie : public Entity
 {
 public:
     glm::vec3 position;
+    glm::vec3 spawnPosition;
+    glm::vec3 velocity = glm::vec3(0.0f);
     float yaw = 0.0f;
     float movementSpeed = 1.8f;
     float renderScale = 0.02f;
+    bool awake = false;
 
     ChasingZombie(std::string meshName, glm::vec3 startPos, float speed = 1.8f, float scale = 0.02f);
 
     void Update(float deltaTime) override;
     void Draw(Renderer &renderer, const std::map<std::string, SceneObject> &virtualScene) override;
     bool IntersectsRay(const glm::vec3 &origin, const glm::vec3 &direction, float &distance) const override;
+
+private:
+    struct CollisionBinding
+    {
+        CollisionObject *target;
+        CollisionObject original;
+    };
+
+    std::vector<CollisionBinding> m_CollisionBindings;
+    glm::vec3 m_CollisionLocalMin = glm::vec3(0.0f);
+    glm::vec3 m_CollisionLocalMax = glm::vec3(0.0f);
+    bool m_HasCollisionBounds = false;
+
+    bool OwnsCollisionObject(const CollisionObject *object) const;
+    void SynchronizeCollisionGeometry();
 };

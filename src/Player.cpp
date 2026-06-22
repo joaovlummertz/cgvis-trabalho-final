@@ -371,5 +371,9 @@ namespace Player
         playerState.g_PlayerPosition = current_pos;
         playerState.g_PlayerPosition.w = 1.0f;
         InputHandler::inputState.g_JumpRequested = false;
-        }
+        // printf("Player position: x=%.3f y=%.3f z=%.3f\n",
+        //        playerState.g_PlayerPosition.x,
+        //        playerState.g_PlayerPosition.y,
+        //        playerState.g_PlayerPosition.z);
+    }
 } // namespace Player

@@ -15,10 +15,10 @@ struct InputState
     bool g_JumpRequested = false;
     bool g_ShowHitbox = false;
     bool g_UseFirstPersonCamera = false;
+    bool g_HasCrowbar = false;
     bool g_EquippedCrowbar = false;
     bool g_UseNoclip = false;
     bool g_interact = false;
-    bool g_CrowbarAttackRequested = false;
     double g_MouseX = 0.0;
     double g_MouseY = 0.0;
 };

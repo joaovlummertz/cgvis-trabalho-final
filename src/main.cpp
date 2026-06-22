@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/tram.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, tramPosition, tramYaw);
     glfwPollEvents();
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/tramDoor.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, tramPosition, tramYaw);
-    ModelLoader::LoadAndAddToScene("../../assets/OBJ/zombie.obj", "../../assets/SMD/", gameRenderer, g_VirtualScene, g_CollisionScene);
+    ModelLoader::LoadAndAddToScene("../../assets/OBJ/zombie.obj", "../../assets/SMD/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, glm::vec3(-59.820f, -5.760f, -0.224f));
 
     InitPlayerHitbox();
     Camera camera;
@@ -149,11 +149,12 @@ int main(int argc, char *argv[])
     g_WorldEntities.push_back(largeDoor);
 
     ChasingZombie *finalBoss = new ChasingZombie(
-        "zombie", glm::vec3(44.0f, -4.82f, -14.0f));
+        "zombie", glm::vec3(-59.820f, -5.760f, -0.224f));
     g_WorldEntities.push_back(finalBoss);
 
     const float crowbarAttackDuration = 0.3f;
     float crowbarAttackElapsed = crowbarAttackDuration;
+    bool leftMouseWasDown = false;
 
     while (!glfwWindowShouldClose(WindowManager.window))
     {
@@ -162,12 +163,10 @@ int main(int argc, char *argv[])
         float delta_time = current_time - previous_time;
         previous_time = current_time;
 
-        if (InputHandler::inputState.g_CrowbarAttackRequested)
-        {
-            InputHandler::inputState.g_CrowbarAttackRequested = false;
-            if (InputHandler::inputState.g_EquippedCrowbar)
-                crowbarAttackElapsed = 0.0f;
-        }
+        const bool leftMouseDown = glfwGetMouseButton(WindowManager.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+        if (leftMouseDown && !leftMouseWasDown && InputHandler::inputState.g_EquippedCrowbar)
+            crowbarAttackElapsed = 0.0f;
+        leftMouseWasDown = leftMouseDown;
 
         if (crowbarAttackElapsed < crowbarAttackDuration)
         {
@@ -197,6 +196,7 @@ int main(int argc, char *argv[])
             if (g_GroundCrowbarAvailable && IsPlayerSteppingOnGroundCrowbar())
             {
                 g_GroundCrowbarAvailable = false;
+                InputHandler::inputState.g_HasCrowbar = true;
                 InputHandler::inputState.g_EquippedCrowbar = true;
                 printf("Crowbar picked up\n");
             }
@@ -329,7 +329,7 @@ int main(int argc, char *argv[])
         // Debug hitboxes belong to the world pass.
         DrawPlayerHitbox(view, projection);
 
-        if (InputHandler::inputState.g_EquippedCrowbar)
+        if (InputHandler::inputState.g_HasCrowbar && InputHandler::inputState.g_EquippedCrowbar)
         {
             glm::mat4 crowbarModel;
             if (InputHandler::inputState.g_UseFirstPersonCamera)
