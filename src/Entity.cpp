@@ -1,8 +1,10 @@
 #include "Entity.h"
 #include "Interaction.h"
+#include "Player.h"
 
 #include <cmath>
 #include <limits>
+#include <glm/geometric.hpp>
 
 SlidingDoor::SlidingDoor(std::string meshName, glm::vec3 startPos, glm::vec3 slideOffset, float rotationYaw)
     : Entity(meshName), closedPosition(startPos), openOffset(slideOffset), yaw(rotationYaw)
@@ -104,4 +106,41 @@ bool SlidingDoor::IntersectsRay(const glm::vec3 &origin, const glm::vec3 &direct
 {
     return Interaction::RayIntersectsAABB(
         origin, direction, m_CurrentBoundsMin, m_CurrentBoundsMax, distance);
+}
+
+ChasingZombie::ChasingZombie(std::string meshName, glm::vec3 startPos, float speed, float scale)
+    : Entity(meshName), position(startPos), movementSpeed(speed), renderScale(scale)
+{
+}
+
+void ChasingZombie::Update(float deltaTime)
+{
+    glm::vec3 target = glm::vec3(Player::playerState.g_PlayerPosition);
+    glm::vec3 toPlayer = target - position;
+    toPlayer.y = 0.0f;
+
+    float distanceToPlayer = glm::length(toPlayer);
+    if (distanceToPlayer > 0.001f)
+    {
+        glm::vec3 direction = toPlayer / distanceToPlayer;
+        position += direction * movementSpeed * deltaTime;
+        yaw = std::atan2(direction.x, direction.z);
+    }
+}
+
+void ChasingZombie::Draw(Renderer &renderer, const std::map<std::string, SceneObject> &virtualScene)
+{
+    glm::mat4 model = Matrix_Translate(position.x, position.y, position.z) *
+                      Matrix_Rotate_Y(yaw) *
+                      Matrix_Scale(renderScale, renderScale, renderScale);
+    renderer.SetModelMatrix(model);
+    renderer.DrawVirtualObject(name.c_str(), virtualScene);
+}
+
+bool ChasingZombie::IntersectsRay(const glm::vec3 &origin, const glm::vec3 &direction, float &distance) const
+{
+    (void)origin;
+    (void)direction;
+    (void)distance;
+    return false;
 }

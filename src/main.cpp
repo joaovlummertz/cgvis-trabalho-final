@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
     const float tramYaw = 1.6048247f;
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/tram.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, tramPosition, tramYaw);
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/tramDoor.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, tramPosition, tramYaw);
+    ModelLoader::LoadAndAddToScene("../../assets/OBJ/zombie.obj", "../../assets/SMD/", gameRenderer, g_VirtualScene, g_CollisionScene);
 
     InitPlayerHitbox();
     Camera camera;
@@ -77,6 +78,10 @@ int main(int argc, char *argv[])
     SlidingDoor *largeDoor = new SlidingDoor(
         "LargeDoor", glm::vec3(0.0f), glm::vec3(0.0f, -3.2f, 0.0f));
     g_WorldEntities.push_back(largeDoor);
+
+    ChasingZombie *finalBoss = new ChasingZombie(
+        "zombie", glm::vec3(44.0f, -4.82f, -14.0f));
+    g_WorldEntities.push_back(finalBoss);
 
     while (!glfwWindowShouldClose(WindowManager.window))
     {
