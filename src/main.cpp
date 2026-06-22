@@ -1,6 +1,7 @@
 #include <map>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/mat4x4.hpp>
@@ -154,6 +155,7 @@ int main(int argc, char *argv[])
 
     const float crowbarAttackDuration = 0.3f;
     float crowbarAttackElapsed = crowbarAttackDuration;
+    bool crowbarHitRegistered = false;
     bool leftMouseWasDown = false;
 
     while (!glfwWindowShouldClose(WindowManager.window))
@@ -165,7 +167,10 @@ int main(int argc, char *argv[])
 
         const bool leftMouseDown = glfwGetMouseButton(WindowManager.window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
         if (leftMouseDown && !leftMouseWasDown && InputHandler::inputState.g_EquippedCrowbar)
+        {
             crowbarAttackElapsed = 0.0f;
+            crowbarHitRegistered = false;
+        }
         leftMouseWasDown = leftMouseDown;
 
         if (crowbarAttackElapsed < crowbarAttackDuration)
@@ -263,11 +268,46 @@ int main(int argc, char *argv[])
             }
         }
 
+        // Crowbar hit detection at the peak of the swing (progress == 0.5)
+        if (crowbarAttackProgress >= 0.5f && !crowbarHitRegistered && finalBoss != nullptr)
+        {
+            crowbarHitRegistered = true;
+            const glm::vec3 playerPos(Player::playerState.g_PlayerPosition);
+            const float dx = finalBoss->position.x - playerPos.x;
+            const float dz = finalBoss->position.z - playerPos.z;
+            const float distSq = dx * dx + dz * dz;
+            if (distSq < 3.0f * 3.0f && distSq > 0.00001f)
+            {
+                const float invDist = 1.0f / std::sqrt(distSq);
+                const float nx = dx * invDist;
+                const float nz = dz * invDist;
+                const float yaw = Player::playerState.g_PlayerYaw;
+                const float dot = nx * std::sin(yaw) + nz * std::cos(yaw);
+                if (dot > 0.3f)
+                    finalBoss->Hit();
+            }
+        }
+
         // --- UPDATE RUNTIME ENTITIES ---
         for (auto &entity : g_WorldEntities)
         {
             entity->Update(delta_time);
         }
+
+        // Remove entities that died this frame
+        g_WorldEntities.erase(
+            std::remove_if(g_WorldEntities.begin(), g_WorldEntities.end(),
+                [&finalBoss](Entity *e) {
+                    if (e->IsDead())
+                    {
+                        if (e == finalBoss)
+                            finalBoss = nullptr;
+                        delete e;
+                        return true;
+                    }
+                    return false;
+                }),
+            g_WorldEntities.end());
 
         // --- Rendering ---
         gameRenderer.ClearColor(0.9f, 0.9f, 1.0f, 1.0f);

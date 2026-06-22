@@ -29,6 +29,7 @@ public:
     virtual void Update(float deltaTime) = 0;
     virtual void Draw(Renderer &renderer, const std::map<std::string, SceneObject> &virtualScene) = 0;
     virtual bool IntersectsRay(const glm::vec3 &origin, const glm::vec3 &direction, float &distance) const = 0;
+    virtual bool IsDead() const { return false; }
 };
 
 class SlidingDoor : public Entity
@@ -74,12 +75,16 @@ public:
     float movementSpeed = 1.8f;
     float renderScale = 0.02f;
     bool awake = false;
+    int health = 3;
+    bool isDead = false;
 
     ChasingZombie(std::string meshName, glm::vec3 startPos, float speed = 1.8f, float scale = 0.02f);
 
     void Update(float deltaTime) override;
     void Draw(Renderer &renderer, const std::map<std::string, SceneObject> &virtualScene) override;
     bool IntersectsRay(const glm::vec3 &origin, const glm::vec3 &direction, float &distance) const override;
+    bool IsDead() const override { return isDead; }
+    void Hit();
 
 private:
     struct CollisionBinding

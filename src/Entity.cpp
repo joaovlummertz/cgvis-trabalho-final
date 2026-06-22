@@ -6,6 +6,7 @@
 #include <cmath>
 #include <algorithm>
 #include <limits>
+#include <cstdio>
 #include <glm/geometric.hpp>
 #include <glm/gtx/norm.hpp>
 
@@ -360,8 +361,31 @@ ChasingZombie::ChasingZombie(std::string meshName, glm::vec3 startPos, float spe
     SynchronizeCollisionGeometry();
 }
 
+void ChasingZombie::Hit()
+{
+    if (isDead)
+        return;
+    health--;
+    printf("Zombie hit! Health remaining: %d\n", health);
+    if (health <= 0)
+    {
+        isDead = true;
+        printf("Zombie killed!\n");
+        g_CollisionScene.erase(
+            std::remove_if(g_CollisionScene.begin(), g_CollisionScene.end(),
+                [this](const CollisionObject &obj) {
+                    return obj.name.rfind(name, 0) == 0;
+                }),
+            g_CollisionScene.end());
+        m_CollisionBindings.clear();
+    }
+}
+
 void ChasingZombie::Update(float deltaTime)
 {
+    if (isDead)
+        return;
+
     if (!InputHandler::inputState.g_HasCrowbar)
     {
         position = spawnPosition;
@@ -460,6 +484,8 @@ void ChasingZombie::Update(float deltaTime)
 
 void ChasingZombie::Draw(Renderer &renderer, const std::map<std::string, SceneObject> &virtualScene)
 {
+    if (isDead)
+        return;
     renderer.SetModelMatrix(modelMatrix);
     renderer.DrawVirtualObject(name.c_str(), virtualScene);
 }
