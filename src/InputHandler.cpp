@@ -65,11 +65,6 @@ namespace InputHandler
             printf("noClip activated\n");
         }
 
-        if (key == GLFW_KEY_F && action == GLFW_PRESS)
-        {
-            inputState.g_EquippedCrowbar = !inputState.g_EquippedCrowbar;
-            printf("Crowbar %s\n", inputState.g_EquippedCrowbar ? "equipped" : "holstered");
-        }
     }
 
     void Init(GLFWwindow *window)
