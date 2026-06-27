@@ -1,0 +1,24 @@
+newmtl C1A1W1D
+map_Ka c1a1w1d.tga
+map_Kd c1a1w1d.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+
+newmtl GLASS_MED
+map_Ka glass_med.tga
+map_Kd glass_med.tga
+Ka 1.000 1.000 1.000
+Kd 0.800 0.800 0.800
+Ks 0.025 0.025 0.025
+Ke 0.000 0.000 0.000
+Ns 96.000
+Ni 1.000
+d 1.000
+illum 2
+

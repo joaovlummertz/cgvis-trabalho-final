@@ -118,6 +118,10 @@ int main(int argc, char *argv[])
     glfwPollEvents();
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/tramDoor.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, tramPosition, tramYaw);
     ModelLoader::LoadAndAddToScene("../../assets/OBJ/zombie.obj", "../../assets/SMD/", gameRenderer, g_VirtualScene, g_CollisionScene, true, 0.02f, glm::vec3(-59.820f, -5.760f, -0.224f));
+    glfwPollEvents();
+    ModelLoader::LoadAndAddToScene("../../assets/OBJ/blast_door.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, false);
+    glfwPollEvents();
+    ModelLoader::LoadAndAddToScene("../../assets/OBJ/glass_door.obj", "../../assets/textures/", gameRenderer, g_VirtualScene, g_CollisionScene, false);
 
     InitPlayerHitbox();
     Camera camera;
@@ -127,19 +131,19 @@ int main(int argc, char *argv[])
     g_WorldEntities.push_back(tramDoor);
 
     SlidingDoor *blastDoor1 = new SlidingDoor(
-        "BlastDoor1", glm::vec3(0.0f), glm::vec3(0.0f, -2.6f, 0.0f));
+        "BlastDoor1", glm::vec3(15.1800f, -3.5400f, -6.3000f), glm::vec3(0.0f, -2.6f, 0.0f), 0.0f, "blast_door");
     g_WorldEntities.push_back(blastDoor1);
 
     SlidingDoor *blastDoor2 = new SlidingDoor(
-        "BlastDoor2", glm::vec3(0.0f), glm::vec3(0.0f, -2.6f, 0.0f));
+        "BlastDoor2", glm::vec3(6.2400f, -3.5200f, -6.3200f), glm::vec3(0.0f, -2.6f, 0.0f), 0.0f, "blast_door");
     g_WorldEntities.push_back(blastDoor2);
 
     SlidingDoor *glassDoor1 = new SlidingDoor(
-        "GlassDoor1", glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.7f));
+        "GlassDoor1", glm::vec3(-54.9000f, -4.7475f, 16.1749f), glm::vec3(0.0f, 0.0f, 1.7f), 0.0f, "glass_door");
     g_WorldEntities.push_back(glassDoor1);
 
     SlidingDoor *glassDoor2 = new SlidingDoor(
-        "GlassDoor2", glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.7f));
+        "GlassDoor2", glm::vec3(-45.4600f, -4.7475f, 16.1749f), glm::vec3(0.0f, 0.0f, -1.7f), 0.0f, "glass_door");
     g_WorldEntities.push_back(glassDoor2);
 
     SlidingDoor *babtechDoor = new SlidingDoor(

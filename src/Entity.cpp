@@ -226,8 +226,8 @@ namespace
     }
 }
 
-SlidingDoor::SlidingDoor(std::string meshName, glm::vec3 startPos, glm::vec3 slideOffset, float rotationYaw)
-    : Entity(meshName), closedPosition(startPos), openOffset(slideOffset), yaw(rotationYaw)
+SlidingDoor::SlidingDoor(std::string entityName, glm::vec3 startPos, glm::vec3 slideOffset, float rotationYaw, std::string renderMesh)
+    : Entity(entityName), meshName(renderMesh.empty() ? entityName : renderMesh), closedPosition(startPos), openOffset(slideOffset), yaw(rotationYaw)
 {
     m_ClosedBoundsMin = glm::vec3(std::numeric_limits<float>::max());
     m_ClosedBoundsMax = glm::vec3(std::numeric_limits<float>::lowest());
@@ -235,7 +235,7 @@ SlidingDoor::SlidingDoor(std::string meshName, glm::vec3 startPos, glm::vec3 sli
     // Bind every collision sub-mesh that belongs to this door.
     for (auto &colObj : g_CollisionScene)
     {
-        if (colObj.name.rfind(meshName, 0) == 0)
+        if (colObj.name.rfind(name, 0) == 0)
         {
             m_CollisionBindings.push_back({&colObj, colObj});
             m_ClosedBoundsMin = glm::min(m_ClosedBoundsMin, colObj.bbox_min);
@@ -319,7 +319,7 @@ void SlidingDoor::Update(float deltaTime)
 void SlidingDoor::Draw(Renderer &renderer, const std::map<std::string, SceneObject> &virtualScene)
 {
     renderer.SetModelMatrix(modelMatrix);
-    renderer.DrawVirtualObject(name.c_str(), virtualScene);
+    renderer.DrawVirtualObject(meshName.c_str(), virtualScene);
 }
 
 bool SlidingDoor::IntersectsRay(const glm::vec3 &origin, const glm::vec3 &direction, float &distance) const

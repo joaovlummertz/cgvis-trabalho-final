@@ -37,6 +37,8 @@ class SlidingDoor : public Entity
 public:
     DoorState state = DoorState::Closed;
 
+    std::string meshName;
+
     // Smooth translation configurations
     glm::vec3 closedPosition;
     glm::vec3 openOffset;
@@ -44,7 +46,7 @@ public:
     float animationProgress = 0.0f; // 0.0 = Closed, 1.0 = Open
     float speed = 2.0f;             // Animation speed modifier
 
-    SlidingDoor(std::string meshName, glm::vec3 startPos, glm::vec3 slideOffset, float rotationYaw = 0.0f);
+    SlidingDoor(std::string entityName, glm::vec3 startPos, glm::vec3 slideOffset, float rotationYaw = 0.0f, std::string renderMesh = "");
 
     void Toggle();
     void Update(float deltaTime) override;
