@@ -10,6 +10,10 @@ https://youtu.be/4wuUgCLb9wU
 ![alt text](image-4.png)
 ![alt text](image-5.png)
 
+### Participação dos membros da dupla:
+- Elias: Contribuiu com a extração dos assets e edição do mapa, interação com objetos (portas e crowbar), funcionamento da câmera em 3a pessoa, posicionamento das luzes e renderização do mapa e elementos.
+- João: Curva de Bézier e movimentação do bonde a utilizando, zumbi que segue o jogador e o ataca, iluminação de Phong, movimentação do player, colisão entre jogador e mapa.
+
 
 ### Uso de IA:
  A dupla utilizou IA principalmente para tirar dúvidas sobre conceitos de Computação Gráfica e para auxiliar na implementação de features específicas do jogo, como a interação com portas e display do crowbar em 1a pessoa.
