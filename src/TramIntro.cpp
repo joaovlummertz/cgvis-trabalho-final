@@ -6,7 +6,8 @@
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+
+#include "matrices.h"
 
 #include "InputHandler.h"
 #include "Player.h"
@@ -124,10 +125,10 @@ namespace
 
     glm::mat4 BuildModelMatrix(const glm::vec3 &tram_position)
     {
-        return glm::translate(glm::mat4(1.0f), tram_position) *
-               glm::rotate(glm::mat4(1.0f), g_State.current_yaw, glm::vec3(0.0f, 1.0f, 0.0f)) *
-               glm::scale(glm::mat4(1.0f), glm::vec3(kTramScale, kTramScale, kTramScale)) *
-               glm::translate(glm::mat4(1.0f), -g_State.tram_local_center);
+        return Matrix_Translate(tram_position.x, tram_position.y, tram_position.z) *
+               Matrix_Rotate_Y(g_State.current_yaw) *
+               Matrix_Scale(kTramScale, kTramScale, kTramScale) *
+               Matrix_Translate(-g_State.tram_local_center.x, -g_State.tram_local_center.y, -g_State.tram_local_center.z);
     }
 } // namespace
 
